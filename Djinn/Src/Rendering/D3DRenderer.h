@@ -5,8 +5,15 @@
 #include <DirectXMath.h>
 
 #include "Renderer.h"
-class D3DRenderer :
-    public Renderer
+#include "../Utils.h"
+
+
+#pragma comment(lib,"d3dcompiler.lib")
+#pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "D3D12.lib")
+
+
+class D3DRenderer : public Renderer
 {
 public:
     D3DRenderer(HWND, int, int);
@@ -49,4 +56,3 @@ private:
 
     void LogAdapters();
 };
-

@@ -1,5 +1,5 @@
 #include "D3DRenderer.h"
-
+#include "../Utils.h"
 
 
 D3DRenderer::D3DRenderer(HWND hWnd, int width, int height) :
@@ -11,40 +11,28 @@ D3DRenderer::~D3DRenderer() { }
 
 bool D3DRenderer::Initialize()
 {
-    HRESULT result;
 
 #ifdef _DEBUG
     Microsoft::WRL::ComPtr<ID3D12Debug> debugController;
-    result = D3D12GetDebugInterface(IID_PPV_ARGS(&debugController));
-    if (FAILED(result)) return false;
+    ThrowIfFailed(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)));
     debugController->EnableDebugLayer();
 #endif
 
-    result = CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory));
-    if (FAILED(result)) return false;
+    ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)));
 
-    result = D3D12CreateDevice(
+    HRESULT deviceCreateResult = D3D12CreateDevice(
         nullptr,
         D3D_FEATURE_LEVEL_11_0,
         IID_PPV_ARGS(&device));
-    if (FAILED(result))
+    if (FAILED(deviceCreateResult))
     {
         Microsoft::WRL::ComPtr<IDXGIAdapter> warpAdapter;
-        result = dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter));
-        if (FAILED(result)) return false;
+        ThrowIfFailed(dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));
 
-        result = D3D12CreateDevice(
-            warpAdapter.Get(),
-            D3D_FEATURE_LEVEL_11_0,
-            IID_PPV_ARGS(&device));
-        if (FAILED(result)) return false;
+        ThrowIfFailed(D3D12CreateDevice(warpAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device)));
     }
 
-    result = device->CreateFence(
-        0,
-        D3D12_FENCE_FLAG_NONE,
-        IID_PPV_ARGS(&fence));
-    if (FAILED(result)) return false;
+    ThrowIfFailed(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)));
 
     rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     dsvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
@@ -55,11 +43,10 @@ bool D3DRenderer::Initialize()
     msQualityLevels.SampleCount = 4;
     msQualityLevels.Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE;
     msQualityLevels.NumQualityLevels = 0;
-    result = device->CheckFeatureSupport(
+    ThrowIfFailed(device->CheckFeatureSupport(
         D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
         &msQualityLevels,
-        sizeof(msQualityLevels));
-    if (FAILED(result)) return false;
+        sizeof msQualityLevels));
 
     msaa4xQuality = msQualityLevels.NumQualityLevels;
     if (msaa4xQuality <= 0) return false;

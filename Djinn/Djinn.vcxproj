@@ -18,6 +18,18 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\Rendering\D3DRenderer.h" />
+    <ClInclude Include="Src\Rendering\Renderer.h" />
+    <ClInclude Include="Src\Timer.h" />
+    <ClInclude Include="Src\WindowsApp.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\main.cpp" />
+    <ClCompile Include="Src\Rendering\D3DRenderer.cpp" />
+    <ClCompile Include="Src\Timer.cpp" />
+    <ClCompile Include="Src\WindowsApp.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{98064876-D1AF-4E6F-BBC2-81D466F4C4F5}</ProjectGuid>
@@ -114,18 +126,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="Src\D3DRenderer.cpp" />
-    <ClCompile Include="Src\main.cpp" />
-    <ClCompile Include="Src\Timer.cpp" />
-    <ClCompile Include="Src\WindowsApp.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Src\D3DRenderer.h" />
-    <ClInclude Include="Src\Renderer.h" />
-    <ClInclude Include="Src\Timer.h" />
-    <ClInclude Include="Src\WindowsApp.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
