@@ -132,6 +132,12 @@ void Timer::Tick()
 }
 
 
+//*****************************************************************************
+// Modification of Timer class by Aaron Hull.
+// Original UpdateFrameStats function still attributed to Frank Luna.
+//*****************************************************************************
+
+
 void Timer::UpdateFrameStats()
 {
     static int frameCount = 0;
