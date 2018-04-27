@@ -9,6 +9,7 @@ public:
     void Start();
     void Stop();
     void Tick();
+    void UpdateFrameStats();
 private:
     double secondsPerCount;
     double deltaTime;

@@ -130,3 +130,17 @@ void Timer::Tick()
         deltaTime = 0.0;
     }
 }
+
+
+void Timer::UpdateFrameStats()
+{
+    static int frameCount = 0;
+    static float timeElapsed = 0.0f;
+
+    frameCount++;
+
+    if (timer.TotalTime() - timeElapsed >= 1.0f)
+    {
+
+    }
+}

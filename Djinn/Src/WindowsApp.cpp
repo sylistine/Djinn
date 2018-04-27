@@ -44,8 +44,8 @@ bool WindowsApp::Initialize()
 
 bool WindowsApp::InitializeWindow()
 {
-    const char* wndClassName = "App";
-    const char* wndTitle = "D3D App";
+    const WCHAR* wndClassName = L"App";
+    const WCHAR* wndTitle = L"D3D App";
 
     WNDCLASS wc;
     wc.style = CS_HREDRAW | CS_VREDRAW;
@@ -61,7 +61,7 @@ bool WindowsApp::InitializeWindow()
 
     if (!RegisterClass(&wc))
     {
-        MessageBox(0, "RegisterClass Failed.", 0, 0);
+        MessageBox(0, L"RegisterClass Failed.", 0, 0);
         return false;
     }
 
@@ -83,7 +83,7 @@ bool WindowsApp::InitializeWindow()
         0);
     if (!hWnd)
     {
-        MessageBox(0, "CreateWindow Failed.", 0, 0);
+        MessageBox(0, L"CreateWindow Failed.", 0, 0);
         return false;
     }
 
@@ -110,6 +110,7 @@ int WindowsApp::Run()
             timer.Tick();
             if (!paused)
             {
+                timer.UpdateFrameStats();
                 Update();
             }
             else
@@ -126,21 +127,6 @@ int WindowsApp::Run()
 
 void WindowsApp::Update()
 {
-    UpdateFrameStats();
-}
-
-
-void WindowsApp::UpdateFrameStats()
-{
-    static int frameCount = 0;
-    static float timeElapsed = 0.0f;
-
-    frameCount++;
-
-    if (timer.TotalTime() - timeElapsed >= 1.0f)
-    {
-        
-    }
 }
 
 
