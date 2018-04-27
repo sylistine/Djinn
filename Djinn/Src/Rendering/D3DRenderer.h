@@ -3,6 +3,8 @@
 #include <dxgi1_4.h>
 #include <d3d12.h>
 #include <DirectXMath.h>
+#include <vector>
+#include <string>
 
 #include "Renderer.h"
 #include "../Utils.h"
@@ -11,6 +13,9 @@
 #pragma comment(lib,"d3dcompiler.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "D3D12.lib")
+
+
+using namespace Microsoft::WRL;
 
 
 class D3DRenderer : public Renderer
@@ -31,9 +36,9 @@ private:
     int width;
     int height;
 
-    Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory;
-    Microsoft::WRL::ComPtr<ID3D12Device> device;
-    Microsoft::WRL::ComPtr<ID3D12Fence> fence;
+    ComPtr<IDXGIFactory4> dxgiFactory;
+    ComPtr<ID3D12Device> device;
+    ComPtr<ID3D12Fence> fence;
     UINT rtvDescriptorSize = 0;
     UINT dsvDescriptorSize = 0;
     UINT cbvSrvUavDescriptorSize = 0;
@@ -41,18 +46,20 @@ private:
     UINT msaa4xQuality = 0;
 
     bool CreateCommandObjects();
-    Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue;
-    Microsoft::WRL::ComPtr<ID3D12CommandAllocator> directCommandListAlloc;
-    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList;
+    ComPtr<ID3D12CommandQueue> commandQueue;
+    ComPtr<ID3D12CommandAllocator> directCommandListAlloc;
+    ComPtr<ID3D12GraphicsCommandList> commandList;
 
     bool CreateSwapChain();
-    Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain;
+    ComPtr<IDXGISwapChain> swapChain;
 
-    bool CreateRtvAndDsvDescriptorHeaps();
-    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> rtvHeap;
-    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvHeap;
+    void CreateRtvAndDsvDescriptorHeaps();
+    ComPtr<ID3D12DescriptorHeap> rtvHeap;
+    ComPtr<ID3D12DescriptorHeap> dsvHeap;
 
     DXGI_FORMAT depthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
     void LogAdapters();
+    void LogAdapterOutputs(IDXGIAdapter* adapter);
+    void LogOutputDisplayModes(IDXGIOutput* output, DXGI_FORMAT format);
 };

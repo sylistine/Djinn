@@ -93,21 +93,20 @@ bool D3DRenderer::CreateCommandObjects()
     D3D12_COMMAND_QUEUE_DESC queueDesc = {};
     queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
     queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-    HRESULT result = device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue));
-    if (FAILED(result)) return false;
+    ThrowIfFailed(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue)));
 
-    result = device->CreateCommandAllocator(
+    ThrowIfFailed(device->CreateCommandAllocator(
         D3D12_COMMAND_LIST_TYPE_DIRECT,
-        IID_PPV_ARGS(directCommandListAlloc.GetAddressOf()));
-    if (FAILED(result)) return false;
+        IID_PPV_ARGS(directCommandListAlloc.GetAddressOf()))
+    );
 
-    result = device->CreateCommandList(
+    ThrowIfFailed(device->CreateCommandList(
         0,
         D3D12_COMMAND_LIST_TYPE_DIRECT,
         directCommandListAlloc.Get(),
         nullptr,
-        IID_PPV_ARGS(commandList.GetAddressOf()));
-    if (FAILED(result)) return false;
+        IID_PPV_ARGS(commandList.GetAddressOf()))
+    );
 
     commandList->Close();
 
@@ -142,30 +141,100 @@ bool D3DRenderer::CreateSwapChain()
     return !FAILED(result);
 }
 
-bool D3DRenderer::CreateRtvAndDsvDescriptorHeaps()
+
+void D3DRenderer::CreateRtvAndDsvDescriptorHeaps()
 {
     D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
     rtvHeapDesc.NumDescriptors = swapChainBufferCount;
     rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
     rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
     rtvHeapDesc.NodeMask = 0;
-    HRESULT result = device->CreateDescriptorHeap(
-        &rtvHeapDesc, IID_PPV_ARGS(rtvHeap.GetAddressOf()));
-    if (FAILED(result)) return false;
+    ThrowIfFailed(device->CreateDescriptorHeap(
+        &rtvHeapDesc, IID_PPV_ARGS(rtvHeap.GetAddressOf()))
+    );
 
     D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc;
     dsvHeapDesc.NumDescriptors = 1;
     dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
     dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
     dsvHeapDesc.NodeMask = 0;
-    result = device->CreateDescriptorHeap(
-        &dsvHeapDesc, IID_PPV_ARGS(dsvHeap.GetAddressOf()));
-    return !FAILED(result);
+    ThrowIfFailed(device->CreateDescriptorHeap(
+        &dsvHeapDesc, IID_PPV_ARGS(dsvHeap.GetAddressOf()))
+    );
 }
 
 
 void D3DRenderer::LogAdapters()
 {
-    // TODO: this.
+    UINT i = 0;
+    IDXGIAdapter *adapter = nullptr;
+    std::vector<IDXGIAdapter*> adapters;
+    while(dxgiFactory->EnumAdapters(i++, &adapter) != DXGI_ERROR_NOT_FOUND)
+    {
+        DXGI_ADAPTER_DESC desc;
+        adapter->GetDesc(&desc);
+
+        std::wstring text = L"Adapter: ";
+        text += desc.Description;
+        text += L"\n";
+
+        OutputDebugString(text.c_str());
+
+        LogAdapterOutputs(adapter);
+
+        adapters.push_back(adapter);
+    }
+
+    for (auto& x : adapters)
+    {
+        x->Release();
+        x = nullptr;
+    }
+}
+
+
+void D3DRenderer::LogAdapterOutputs(IDXGIAdapter* adapter)
+{
+    UINT i = 0;
+    IDXGIOutput* output = nullptr;
+    while (adapter->EnumOutputs(i++, &output) != DXGI_ERROR_NOT_FOUND)
+    {
+        DXGI_OUTPUT_DESC desc;
+        output->GetDesc(&desc);
+
+        std::wstring text = L"Output: ";
+        text += desc.DeviceName;
+        text += L"\n";
+
+        OutputDebugString(text.c_str());
+
+        LogOutputDisplayModes(output, backBufferFormat);
+
+        output->Release();
+        output = nullptr;
+    }
+}
+
+
+void D3DRenderer::LogOutputDisplayModes(IDXGIOutput* output, const DXGI_FORMAT format)
+{
+    UINT flags = 0;
+
+    UINT count = 0;
+    output->GetDisplayModeList(format, flags, &count, nullptr);
+    auto modeList = new DXGI_MODE_DESC[count];
+    output->GetDisplayModeList(format, flags, &count, modeList);
+
+    for (int i = 0; i < count; ++i)
+    {
+        UINT num = modeList[i].RefreshRate.Numerator;
+        UINT den = modeList[i].RefreshRate.Denominator;
+        wstring text =
+            to_wstring(modeList[i].Width) + L"x" +
+            to_wstring(modeList[i].Height) + L"@" +
+            to_wstring(num) + L"/" + to_wstring(den) + L"hz\n";
+
+        OutputDebugString(text.c_str());
+    }
 }
 

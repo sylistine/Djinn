@@ -110,7 +110,6 @@ int WindowsApp::Run()
             timer.Tick();
             if (!paused)
             {
-                // Calculate frame stats.
                 Update();
             }
             else
@@ -123,20 +122,39 @@ int WindowsApp::Run()
     return static_cast<int>(msg.wParam);
 }
 
+
+
 void WindowsApp::Update()
 {
-    // TODO: Implement update logic.
+    UpdateFrameStats();
 }
+
+
+void WindowsApp::UpdateFrameStats()
+{
+    static int frameCount = 0;
+    static float timeElapsed = 0.0f;
+
+    frameCount++;
+
+    if (timer.TotalTime() - timeElapsed >= 1.0f)
+    {
+        
+    }
+}
+
 
 void WindowsApp::OnMouseDown(WPARAM wParam, int x, int y)
 {
     
 }
 
+
 void WindowsApp::OnMouseUp(WPARAM wParam, int x, int y)
 {
     
 }
+
 
 void WindowsApp::OnMouseMove(WPARAM wParam, int x, int y)
 {

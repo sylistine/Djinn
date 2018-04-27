@@ -5,9 +5,8 @@
 #include <Windows.h>
 #include <WindowsX.h>
 
-//#if DIRECTX
 #include "Rendering/D3DRenderer.h"
-//#endif
+
 #include "Timer.h"
 
 class WindowsApp {
@@ -25,7 +24,7 @@ public:
 private:
     // Windows parameters.
     HINSTANCE hInstance;
-    HWND hWnd{};
+    HWND hWnd;
     Timer timer;
     Renderer *renderer;
     // Initialization.
@@ -33,6 +32,7 @@ private:
     bool InitializeWindow();
     // Game logic
     void Update();
+    void UpdateFrameStats();
     void OnMouseDown(WPARAM, int, int);
     void OnMouseUp(WPARAM, int, int);
     void OnMouseMove(WPARAM, int, int);
