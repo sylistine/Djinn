@@ -1,4 +1,9 @@
 #pragma once
+
+#include <string>
+
+using namespace std;
+
 class Timer
 {
 public:
@@ -10,6 +15,9 @@ public:
     void Stop();
     void Tick();
     void UpdateFrameStats();
+    wstring FrameStatus() const;
+    float Fps() const;
+    float Mspf() const;
 private:
     double secondsPerCount;
     double deltaTime;
@@ -18,5 +26,7 @@ private:
     __int64 pausedTime;
     __int64 prevTime;
     __int64 currTime;
+    float fps;
+    float mspf;
     bool stopped;
 };

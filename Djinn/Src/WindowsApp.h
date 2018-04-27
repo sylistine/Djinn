@@ -32,7 +32,6 @@ private:
     bool InitializeWindow();
     // Game logic
     void Update();
-    void UpdateFrameStats();
     void OnMouseDown(WPARAM, int, int);
     void OnMouseUp(WPARAM, int, int);
     void OnMouseMove(WPARAM, int, int);

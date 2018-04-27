@@ -139,8 +139,29 @@ void Timer::UpdateFrameStats()
 
     frameCount++;
 
-    if (timer.TotalTime() - timeElapsed >= 1.0f)
+    if (TotalTime() - timeElapsed >= 1.0f)
     {
+        fps = static_cast<float>(frameCount);
+        mspf = 1000.0f / fps;
 
+        frameCount = 0;
+        timeElapsed += 1.0f;
     }
+}
+
+
+wstring Timer::FrameStatus()const
+{
+    return to_wstring(mspf) + L"ms (" + to_wstring(fps) + L"fps)";
+}
+
+
+float Timer::Mspf()const
+{
+    return mspf;
+}
+
+float Timer::Fps()const
+{
+    return fps;
 }

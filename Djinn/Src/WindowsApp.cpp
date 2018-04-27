@@ -44,8 +44,8 @@ bool WindowsApp::Initialize()
 
 bool WindowsApp::InitializeWindow()
 {
-    const WCHAR* wndClassName = L"App";
-    const WCHAR* wndTitle = L"D3D App";
+    const WCHAR* wndClassName = L"DjinnRendererWindow";
+    const WCHAR* wndTitle = L"Djinn Renderer";
 
     WNDCLASS wc;
     wc.style = CS_HREDRAW | CS_VREDRAW;
