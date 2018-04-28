@@ -17,7 +17,8 @@ public:
     DxException(HRESULT errorcode, const wstring& function, const wstring& file, int line);
     wstring ToString()const;
 private:
-    HRESULT errorcode;
+    HRESULT errorCode;
+    wstring errorMsg;
     wstring function;
     wstring file;
     int line;
@@ -30,10 +31,12 @@ inline wstring AnsiToWString(const string& str)
     return wstring(buffer);
 }
 
-#define ThrowIfFailed(x) {                                     \
-    HRESULT errorcode = (x);                                   \
-    wstring filename = AnsiToWString(__FILE__);                \
-    if (FAILED(errorcode)) {                                   \
-        throw DxException(errorcode, L#x, filename, __LINE__); \
-    }                                                          \
+#define ThrowIfFailed(x) {                                       \
+    HRESULT errorcode = (x);                                     \
+    wstring filename = AnsiToWString(__FILE__);                  \
+    DxException e(errorcode, L#x, filename, __LINE__);           \
+    OutputDebugString(e.ToString().c_str());                     \
+    if (FAILED(errorcode)) {                                     \
+        throw e;                                                 \
+    }                                                            \
 }

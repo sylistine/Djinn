@@ -12,7 +12,7 @@ bool D3DRenderer::Initialize()
 {
 
 #ifdef _DEBUG
-    Microsoft::WRL::ComPtr<ID3D12Debug> debugController;
+    ComPtr<ID3D12Debug> debugController;
     ThrowIfFailed(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)));
     debugController->EnableDebugLayer();
 #endif
@@ -25,10 +25,13 @@ bool D3DRenderer::Initialize()
         IID_PPV_ARGS(&device));
     if (FAILED(deviceCreateResult))
     {
-        Microsoft::WRL::ComPtr<IDXGIAdapter> warpAdapter;
+        ComPtr<IDXGIAdapter> warpAdapter;
         ThrowIfFailed(dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));
 
-        ThrowIfFailed(D3D12CreateDevice(warpAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device)));
+        ThrowIfFailed(D3D12CreateDevice(
+            warpAdapter.Get(),
+            D3D_FEATURE_LEVEL_11_0,
+            IID_PPV_ARGS(&device)));
     }
 
     ThrowIfFailed(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)));
@@ -175,7 +178,12 @@ bool D3DRenderer::GetMsaa4xState()
 
 void D3DRenderer::SetMsaa4xState(bool newState)
 {
-    msaa4xState = newState;
+    if (msaa4xState != newState)
+    {
+        msaa4xState = newState;
+        CreateSwapChain();
+        OnResize();
+    }
 }
 
 
@@ -243,7 +251,7 @@ void D3DRenderer::CreateSwapChain()
     swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
     swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
     swapChainDesc.SampleDesc.Count = msaa4xState ? 4 : 1;
-    swapChainDesc.SampleDesc.Quality = msaa4xState ? (msaa4xQuality - 1) : 1;
+    swapChainDesc.SampleDesc.Quality = msaa4xState ? (msaa4xQuality - 1) : 0;
     swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     swapChainDesc.BufferCount = swapChainBufferCount;
     swapChainDesc.OutputWindow = hWnd;
@@ -296,13 +304,12 @@ void D3DRenderer::LogAdapters()
 
         OutputDebugString(text.c_str());
 
-        LogAdapterOutputs(adapter);
-
         adapters.push_back(adapter);
     }
 
     for (auto& x : adapters)
     {
+        LogAdapterOutputs(x);
         x->Release();
         x = nullptr;
     }
