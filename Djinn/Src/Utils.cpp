@@ -7,6 +7,7 @@ DxException::DxException(
 
 wstring DxException::ToString()const
 {
+    
     //_com_error error(errorcode);
     return function + L" failed with error code " + to_wstring(errorcode) +
         L" in " + file + L" on line " + to_wstring(line);

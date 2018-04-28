@@ -66,7 +66,7 @@ private:
     void OnResize();
     void FlushCommandQueue();
     bool CreateCommandObjects();
-    bool CreateSwapChain();
+    void CreateSwapChain();
     void CreateRtvAndDsvDescriptorHeaps();
 
 

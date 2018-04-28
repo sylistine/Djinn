@@ -9,18 +9,17 @@ WindowsApp::WindowsApp(HINSTANCE hInstance) : hInstance(hInstance)
 {
     assert(app == nullptr);
     app = this;
-//#if DIRECTX
-    renderer = new D3DRenderer(hWnd, windowWidth, windowHeight);
-//#endif
 }
 
 WindowsApp::~WindowsApp() = default;
+
 
 WindowsApp *WindowsApp::app = nullptr;
 WindowsApp *WindowsApp::GetApp()
 {
     return app;
 }
+
 
 bool WindowsApp::Initialize()
 {
@@ -30,6 +29,8 @@ bool WindowsApp::Initialize()
         {
             return false;
         }
+
+        renderer = new D3DRenderer(hWnd, windowWidth, windowHeight);
 
         if (!renderer->Initialize())
         {
@@ -41,6 +42,7 @@ bool WindowsApp::Initialize()
 
     return true;
 }
+
 
 bool WindowsApp::InitializeWindow()
 {
@@ -93,6 +95,7 @@ bool WindowsApp::InitializeWindow()
     return true;
 }
 
+
 int WindowsApp::Run()
 {
     MSG msg = { 0 };
@@ -122,7 +125,6 @@ int WindowsApp::Run()
 
     return static_cast<int>(msg.wParam);
 }
-
 
 
 void WindowsApp::Update()
@@ -180,7 +182,7 @@ LRESULT WindowsApp::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_SIZE:
         windowWidth  = LOWORD(lParam);
         windowHeight = HIWORD(lParam);
-        if (renderer != nullptr)
+        if (renderer != nullptr && renderer->initialized)
         {
             if (wParam == SIZE_MINIMIZED)
             {
@@ -258,7 +260,7 @@ LRESULT WindowsApp::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         else if (static_cast<int>(wParam) == VK_F2)
         {
-            renderer->SetMsaa4xState(!renderer->MsaaStateQ);
+            renderer->SetMsaa4xState(!renderer->GetMsaa4xState());
         }
         return 0;
     }

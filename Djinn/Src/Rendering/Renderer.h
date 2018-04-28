@@ -7,6 +7,6 @@ public:
     virtual bool GetMsaa4xState() = 0;
     virtual void SetMsaa4xState(bool) = 0;
     virtual void SetClientDimensions(int width, int height) = 0;
-    bool MsaaStateQ = false;
+    bool initialized = false;
 };
 

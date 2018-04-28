@@ -1,5 +1,4 @@
 #include "D3DRenderer.h"
-#include "../Utils.h"
 
 
 D3DRenderer::D3DRenderer(HWND hWnd, int width, int height) :
@@ -59,6 +58,10 @@ bool D3DRenderer::Initialize()
     CreateSwapChain();
     CreateRtvAndDsvDescriptorHeaps();
 
+    // Run this code once after initialization.
+    OnResize();
+
+    initialized = true;
     return true;
 }
 
@@ -201,8 +204,6 @@ void D3DRenderer::FlushCommandQueue()
 }
 
 
-
-
 bool D3DRenderer::CreateCommandObjects()
 {
     D3D12_COMMAND_QUEUE_DESC queueDesc = {};
@@ -229,31 +230,31 @@ bool D3DRenderer::CreateCommandObjects()
 }
 
 
-bool D3DRenderer::CreateSwapChain()
+void D3DRenderer::CreateSwapChain()
 {
     swapChain.Reset();
 
-    DXGI_SWAP_CHAIN_DESC scDesc;
-    scDesc.BufferDesc.Width = clientWidth;
-    scDesc.BufferDesc.Height = clientHeight;
-    scDesc.BufferDesc.RefreshRate.Numerator = 60;
-    scDesc.BufferDesc.RefreshRate.Denominator = 1;
-    scDesc.BufferDesc.Format = backBufferFormat;
-    scDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-    scDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-    scDesc.SampleDesc.Count = msaa4xState ? 4 : 1;
-    scDesc.SampleDesc.Quality = msaa4xState ? (msaa4xQuality - 1) : 1;
-    scDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    scDesc.BufferCount = swapChainBufferCount;
-    scDesc.OutputWindow = hWnd;
-    scDesc.Windowed = true;
-    scDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-    scDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-    HRESULT result = dxgiFactory->CreateSwapChain(
+    DXGI_SWAP_CHAIN_DESC swapChainDesc;
+    swapChainDesc.BufferDesc.Width = clientWidth;
+    swapChainDesc.BufferDesc.Height = clientHeight;
+    swapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
+    swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
+    swapChainDesc.BufferDesc.Format = backBufferFormat;
+    swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+    swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+    swapChainDesc.SampleDesc.Count = msaa4xState ? 4 : 1;
+    swapChainDesc.SampleDesc.Quality = msaa4xState ? (msaa4xQuality - 1) : 1;
+    swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    swapChainDesc.BufferCount = swapChainBufferCount;
+    swapChainDesc.OutputWindow = hWnd;
+    swapChainDesc.Windowed = true;
+    swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+    ThrowIfFailed(dxgiFactory->CreateSwapChain(
         commandQueue.Get(),
-        &scDesc,
-        swapChain.GetAddressOf());
-    return !FAILED(result);
+        &swapChainDesc,
+        swapChain.GetAddressOf()));
 }
 
 
