@@ -27,6 +27,8 @@ private:
     HWND hWnd;
     Timer timer;
     Renderer *renderer;
+    int windowWidth = 800;
+    int windowHeight = 600;
     // Initialization.
     bool initialized = false;
     bool InitializeWindow();
@@ -36,8 +38,6 @@ private:
     void OnMouseUp(WPARAM, int, int);
     void OnMouseMove(WPARAM, int, int);
     // game state
-    int clientWidth = 800;
-    int clientHeight = 600;
     bool paused = false;
     bool minimized = false;
     bool maximized = false;

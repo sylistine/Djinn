@@ -3,7 +3,7 @@
 
 
 D3DRenderer::D3DRenderer(HWND hWnd, int width, int height) :
-    hWnd(hWnd), width(width), height(height) { }
+    hWnd(hWnd), clientWidth(width), clientHeight(height) { }
 
 
 D3DRenderer::~D3DRenderer() { }
@@ -65,7 +65,102 @@ bool D3DRenderer::Initialize()
 
 void D3DRenderer::OnResize()
 {
-    
+    FlushCommandQueue();
+    ThrowIfFailed(commandList->Reset(directCommandListAlloc.Get(), nullptr));
+    for (auto& i : swapChainBuffer)
+    {
+        i.Reset();
+    }
+    depthStencilBuffer.Reset();
+
+    ThrowIfFailed(swapChain->ResizeBuffers(
+        swapChainBufferCount,
+        clientWidth, clientHeight,
+        backBufferFormat,
+        DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH
+    ));
+
+    currentBackBuffer = 0;
+
+    auto rtvHeapHandle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
+    for (UINT i = 0; i < swapChainBufferCount; ++i)
+    {
+        ThrowIfFailed(swapChain->GetBuffer(i, IID_PPV_ARGS(&swapChainBuffer[i])));
+        device->CreateRenderTargetView(
+            swapChainBuffer[i].Get(),
+            nullptr,
+            rtvHeapHandle);
+        rtvHeapHandle.ptr += rtvDescriptorSize;
+    }
+
+    // Build depth stencil view
+    D3D12_RESOURCE_DESC depthStencilDesc;
+    depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+    depthStencilDesc.Alignment = 0;
+    depthStencilDesc.Width = clientWidth;
+    depthStencilDesc.Height = clientHeight;
+    depthStencilDesc.DepthOrArraySize = 1;
+    depthStencilDesc.MipLevels = 1;
+    depthStencilDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
+    depthStencilDesc.SampleDesc.Count = msaa4xState ? 4 : 1;
+    depthStencilDesc.SampleDesc.Quality = msaa4xState ? msaa4xQuality - 1 : 0;
+    depthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+    depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+    D3D12_CLEAR_VALUE optClear;
+    optClear.Format = depthStencilFormat;
+    optClear.DepthStencil.Depth = 1.0f;
+    optClear.DepthStencil.Stencil = 0;
+
+    D3D12_HEAP_PROPERTIES depthStencilHeapProperties;
+    depthStencilHeapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
+    depthStencilHeapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    depthStencilHeapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+    depthStencilHeapProperties.CreationNodeMask = 1;
+    depthStencilHeapProperties.VisibleNodeMask = 1;
+
+    ThrowIfFailed(device->CreateCommittedResource(
+        &depthStencilHeapProperties,
+        D3D12_HEAP_FLAG_NONE,
+        &depthStencilDesc,
+        D3D12_RESOURCE_STATE_COMMON,
+        &optClear,
+        IID_PPV_ARGS(depthStencilBuffer.GetAddressOf())
+    ));
+
+    D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+    dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+    dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+    dsvDesc.Format = depthStencilFormat;
+    dsvDesc.Texture2D.MipSlice = 0;
+    device->CreateDepthStencilView(
+        depthStencilBuffer.Get(),
+        &dsvDesc,
+        dsvHeap->GetCPUDescriptorHandleForHeapStart());
+
+    // Prepare CommandList and CommandQueue
+    D3D12_RESOURCE_BARRIER commandListResourceBarrier;
+    commandListResourceBarrier.Transition.pResource = depthStencilBuffer.Get();
+    commandListResourceBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON;
+    commandListResourceBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+    commandListResourceBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    commandList->ResourceBarrier(1, &commandListResourceBarrier);
+
+    ThrowIfFailed(commandList->Close());
+    ID3D12CommandList *commandLists[] = { commandList.Get() };
+    commandQueue->ExecuteCommandLists(_countof(commandLists), commandLists);
+
+    FlushCommandQueue();
+
+    // Update viewport and scissor rect.
+    screenViewport.TopLeftX = 0;
+    screenViewport.TopLeftY = 0;
+    screenViewport.Width = static_cast<float>(clientWidth);
+    screenViewport.Height = static_cast<float>(clientHeight);
+    screenViewport.MinDepth = 0.0f;
+    screenViewport.MaxDepth = 1.0f;
+
+    scissorRect = { 0, 0, clientWidth, clientHeight };
 }
 
 
@@ -83,8 +178,28 @@ void D3DRenderer::SetMsaa4xState(bool newState)
 
 void D3DRenderer::SetClientDimensions(int width, int height)
 {
-    
+    clientWidth = width;
+    clientHeight = height;
+    OnResize();
 }
+
+
+/// Blocks until GPU finishes handling commands.
+void D3DRenderer::FlushCommandQueue()
+{
+    currentFence++;
+
+    ThrowIfFailed(commandQueue->Signal(fence.Get(), currentFence));
+
+    if (fence->GetCompletedValue() < currentFence)
+    {
+        HANDLE eventHandle = CreateEventEx(nullptr, false, false, EVENT_ALL_ACCESS);
+        ThrowIfFailed(fence->SetEventOnCompletion(currentFence, eventHandle));
+        WaitForSingleObject(eventHandle, INFINITE);
+        CloseHandle(eventHandle);
+    }
+}
+
 
 
 
@@ -119,8 +234,8 @@ bool D3DRenderer::CreateSwapChain()
     swapChain.Reset();
 
     DXGI_SWAP_CHAIN_DESC scDesc;
-    scDesc.BufferDesc.Width = width;
-    scDesc.BufferDesc.Height = height;
+    scDesc.BufferDesc.Width = clientWidth;
+    scDesc.BufferDesc.Height = clientHeight;
     scDesc.BufferDesc.RefreshRate.Numerator = 60;
     scDesc.BufferDesc.RefreshRate.Denominator = 1;
     scDesc.BufferDesc.Format = backBufferFormat;
@@ -225,7 +340,7 @@ void D3DRenderer::LogOutputDisplayModes(IDXGIOutput* output, const DXGI_FORMAT f
     auto modeList = new DXGI_MODE_DESC[count];
     output->GetDisplayModeList(format, flags, &count, modeList);
 
-    for (int i = 0; i < count; ++i)
+    for (UINT i = 0; i < count; ++i)
     {
         UINT num = modeList[i].RefreshRate.Numerator;
         UINT den = modeList[i].RefreshRate.Denominator;

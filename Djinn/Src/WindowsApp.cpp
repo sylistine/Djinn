@@ -10,7 +10,7 @@ WindowsApp::WindowsApp(HINSTANCE hInstance) : hInstance(hInstance)
     assert(app == nullptr);
     app = this;
 //#if DIRECTX
-    renderer = new D3DRenderer(hWnd, clientWidth, clientHeight);
+    renderer = new D3DRenderer(hWnd, windowWidth, windowHeight);
 //#endif
 }
 
@@ -66,7 +66,7 @@ bool WindowsApp::InitializeWindow()
     }
 
     // Compute window rectangle dimensions based on requested client area dimensions.
-    RECT rect = { 0, 0, clientWidth, clientHeight };
+    RECT rect = { 0, 0, windowWidth, windowHeight };
     AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
     const int width = rect.right - rect.left;
     const int height = rect.bottom - rect.top;
@@ -178,8 +178,8 @@ LRESULT WindowsApp::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         return 0;
     case WM_SIZE:
-        clientWidth = LOWORD(lParam);
-        clientHeight = HIWORD(lParam);
+        windowWidth  = LOWORD(lParam);
+        windowHeight = HIWORD(lParam);
         if (renderer != nullptr)
         {
             if (wParam == SIZE_MINIMIZED)
@@ -193,7 +193,7 @@ LRESULT WindowsApp::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 paused = false;
                 minimized = false;
                 maximized = true;
-                renderer->OnResize();
+                renderer->SetClientDimensions(windowWidth, windowHeight);
             }
             else if (wParam == SIZE_RESTORED)
             {
@@ -210,7 +210,7 @@ LRESULT WindowsApp::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
                         paused = false;
                         maximized = false;
                     }
-                    renderer->OnResize();
+                    renderer->SetClientDimensions(windowWidth, windowHeight);
                 }
             }
         }
@@ -226,7 +226,7 @@ LRESULT WindowsApp::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         timer.Start();
         if (renderer != nullptr)
         {
-            renderer->OnResize();
+            renderer->SetClientDimensions(windowWidth, windowHeight);
         }
         return 0;
     case WM_DESTROY:
