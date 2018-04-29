@@ -146,6 +146,7 @@ void D3DRenderer::OnResize()
 
     // Prepare CommandList and CommandQueue
     D3D12_RESOURCE_BARRIER commandListResourceBarrier;
+    ZeroMemory(&commandListResourceBarrier, sizeof commandListResourceBarrier);
     commandListResourceBarrier.Transition.pResource = depthStencilBuffer.Get();
     commandListResourceBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON;
     commandListResourceBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_DEPTH_WRITE;
