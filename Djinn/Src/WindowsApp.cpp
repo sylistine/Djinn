@@ -114,7 +114,10 @@ int WindowsApp::Run()
             if (!paused)
             {
                 timer.UpdateFrameStats();
+
+                // TODO: Update and Draw should be left up to a platform agnostic Game or App class.
                 Update();
+                renderer->Draw();
             }
             else
             {

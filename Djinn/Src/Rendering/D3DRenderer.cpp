@@ -5,7 +5,57 @@ D3DRenderer::D3DRenderer(HWND hWnd, int width, int height) :
     hWnd(hWnd), clientWidth(width), clientHeight(height) { }
 
 
-D3DRenderer::~D3DRenderer() { }
+D3DRenderer::~D3DRenderer()
+{
+    if (device != nullptr)
+    {
+        FlushCommandQueue();
+    }
+}
+
+
+bool D3DRenderer::GetMsaa4xState()
+{
+    return msaa4xState;
+}
+void D3DRenderer::SetMsaa4xState(bool newState)
+{
+    if (msaa4xState != newState)
+    {
+        msaa4xState = newState;
+        CreateSwapChain();
+        OnResize();
+    }
+}
+
+
+void D3DRenderer::SetClientDimensions(int width, int height)
+{
+    clientWidth = width;
+    clientHeight = height;
+    OnResize();
+}
+
+
+ID3D12Resource *D3DRenderer::CurrentBackBuffer()const
+{
+    return swapChainBuffer[currentBackBuffer].Get();
+}
+
+
+D3D12_CPU_DESCRIPTOR_HANDLE D3DRenderer::CurrentBackBufferView()const
+{
+    D3D12_CPU_DESCRIPTOR_HANDLE handle;
+    handle.ptr = rtvHeap->GetCPUDescriptorHandleForHeapStart().ptr +
+        currentBackBuffer * rtvDescriptorSize;
+    return handle;
+}
+
+
+D3D12_CPU_DESCRIPTOR_HANDLE D3DRenderer::DepthStencilView()const
+{
+    return dsvHeap->GetCPUDescriptorHandleForHeapStart();
+}
 
 
 bool D3DRenderer::Initialize()
@@ -66,6 +116,59 @@ bool D3DRenderer::Initialize()
 
     initialized = true;
     return true;
+}
+
+
+/// The fun stuff! Finally!
+void D3DRenderer::Draw()
+{
+    ThrowIfFailed(directCommandListAlloc->Reset());
+
+    ThrowIfFailed(commandList->Reset(directCommandListAlloc.Get(), nullptr));
+
+    // TODO: this will probably be the first of many objects that get their own class.
+    // This is way too verbose.
+    D3D12_RESOURCE_BARRIER presentToRenderTarget;
+    ZeroMemory(&presentToRenderTarget, sizeof presentToRenderTarget);
+    presentToRenderTarget.Transition.pResource = CurrentBackBuffer();
+    presentToRenderTarget.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+    presentToRenderTarget.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+    presentToRenderTarget.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    commandList->ResourceBarrier(1, &presentToRenderTarget);
+
+    commandList->RSSetViewports(1, &screenViewport);
+    commandList->RSSetScissorRects(1, &scissorRect);
+
+    // Clear to black, baby.
+    commandList->ClearRenderTargetView(
+        CurrentBackBufferView(),
+        DirectX::Colors::DarkRed,
+        0,
+        nullptr);
+    commandList->ClearDepthStencilView(
+        DepthStencilView(),
+        D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
+        1.0f, 0, 0, nullptr);
+
+    commandList->OMSetRenderTargets(1, &CurrentBackBufferView(), true, &DepthStencilView());
+
+    D3D12_RESOURCE_BARRIER renderTargetToPresent;
+    ZeroMemory(&renderTargetToPresent, sizeof renderTargetToPresent);
+    renderTargetToPresent.Transition.pResource = CurrentBackBuffer();
+    renderTargetToPresent.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+    renderTargetToPresent.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+    renderTargetToPresent.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    commandList->ResourceBarrier(1, &renderTargetToPresent);
+
+    ThrowIfFailed(commandList->Close());
+
+    ID3D12CommandList *commandLists[] = { commandList.Get() };
+    commandQueue->ExecuteCommandLists(_countof(commandLists), commandLists);
+
+    ThrowIfFailed(swapChain->Present(0, 0));
+    currentBackBuffer = (currentBackBuffer + 1) % swapChainBufferCount;
+
+    FlushCommandQueue();
 }
 
 
@@ -168,31 +271,6 @@ void D3DRenderer::OnResize()
     screenViewport.MaxDepth = 1.0f;
 
     scissorRect = { 0, 0, clientWidth, clientHeight };
-}
-
-
-bool D3DRenderer::GetMsaa4xState()
-{
-    return msaa4xState;
-}
-
-
-void D3DRenderer::SetMsaa4xState(bool newState)
-{
-    if (msaa4xState != newState)
-    {
-        msaa4xState = newState;
-        CreateSwapChain();
-        OnResize();
-    }
-}
-
-
-void D3DRenderer::SetClientDimensions(int width, int height)
-{
-    clientWidth = width;
-    clientHeight = height;
-    OnResize();
 }
 
 

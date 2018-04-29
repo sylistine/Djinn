@@ -8,6 +8,7 @@
 #include <dxgi1_4.h>
 #include <d3d12.h>
 #include <DirectXMath.h>
+#include <DirectXColors.h>
 
 #include "Renderer.h"
 #include "../Utils.h"
@@ -24,12 +25,19 @@ using namespace Microsoft::WRL;
 class D3DRenderer : public Renderer
 {
 public:
+    // ~tors
     D3DRenderer(HWND, int, int);
     ~D3DRenderer();
-    bool Initialize() override;
+
+public:
     bool GetMsaa4xState() override;
     void SetMsaa4xState(bool) override;
     void SetClientDimensions(int width, int height) override;
+private:
+    ID3D12Resource *CurrentBackBuffer()const;
+    D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
+    D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView()const;
+
 private:
     HWND hWnd;
     int clientWidth;
@@ -63,6 +71,10 @@ private:
     D3D12_VIEWPORT screenViewport;
     D3D12_RECT scissorRect;
 
+public:
+    bool Initialize() override;
+    void Draw() override;
+private:
     void OnResize();
     void FlushCommandQueue();
     bool CreateCommandObjects();
