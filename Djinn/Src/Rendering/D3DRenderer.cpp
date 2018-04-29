@@ -142,7 +142,7 @@ void D3DRenderer::Draw()
     // Clear to black, baby.
     commandList->ClearRenderTargetView(
         CurrentBackBufferView(),
-        DirectX::Colors::DarkRed,
+        DirectX::Colors::Black,
         0,
         nullptr);
     commandList->ClearDepthStencilView(
