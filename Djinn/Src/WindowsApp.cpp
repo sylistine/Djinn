@@ -261,10 +261,10 @@ LRESULT WindowsApp::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         {
             PostQuitMessage(0);
         }
-        else if (static_cast<int>(wParam) == VK_F2)
-        {
-            renderer->SetMsaa4xState(!renderer->GetMsaa4xState());
-        }
+        //else if (static_cast<int>(wParam) == VK_F2)
+        //{
+        //    renderer->SetMsaa4xState(!renderer->GetMsaa4xState());
+        //}
         return 0;
     }
 
