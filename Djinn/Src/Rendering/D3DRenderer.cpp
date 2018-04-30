@@ -14,21 +14,6 @@ D3DRenderer::~D3DRenderer()
 }
 
 
-bool D3DRenderer::GetMsaa4xState()
-{
-    return msaa4xState;
-}
-void D3DRenderer::SetMsaa4xState(bool newState)
-{
-    if (msaa4xState != newState)
-    {
-        msaa4xState = newState;
-        CreateSwapChain();
-        OnResize();
-    }
-}
-
-
 void D3DRenderer::SetClientDimensions(int width, int height)
 {
     clientWidth = width;
@@ -99,16 +84,21 @@ bool D3DRenderer::Initialize()
         D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
         &msQualityLevels,
         sizeof msQualityLevels));
-
-    msaa4xQuality = msQualityLevels.NumQualityLevels;
-    if (msaa4xQuality <= 0) return false;
+    msaa4xMaxQuality = msQualityLevels.NumQualityLevels;
+    if (msaa4xMaxQuality <= 0) return false;
 
 #if _DEBUG
     LogAdapters();
 #endif
 
     CreateCommandObjects();
-    CreateSwapChain();
+
+    DXGI_SWAP_CHAIN_DESC swapChainDescriptor = GetSwapChainDescriptor();
+    swapChain.Reset();
+    ThrowIfFailed(dxgiFactory->CreateSwapChain(
+        commandQueue.Get(),
+        &swapChainDescriptor,
+        swapChain.GetAddressOf()));
     CreateRtvAndDsvDescriptorHeaps();
 
     // Run this code once after initialization.
@@ -116,6 +106,37 @@ bool D3DRenderer::Initialize()
 
     initialized = true;
     return true;
+}
+
+inline DXGI_SAMPLE_DESC D3DRenderer::GetSampleDescriptor() {
+    DXGI_SAMPLE_DESC sampleDesc;
+    sampleDesc.Count = 4;
+    sampleDesc.Quality = msaa4xMaxQuality;
+    return sampleDesc;
+}
+
+inline DXGI_SWAP_CHAIN_DESC D3DRenderer::GetSwapChainDescriptor()
+{
+    DXGI_MODE_DESC bufferDesc;
+    bufferDesc.Width = clientWidth;
+    bufferDesc.Height = clientHeight;
+    bufferDesc.RefreshRate.Numerator = 60;
+    bufferDesc.RefreshRate.Denominator = 1;
+    bufferDesc.Format = backBufferFormat;
+    bufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+    bufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+
+    DXGI_SWAP_CHAIN_DESC swapChainDesc;
+    swapChainDesc.BufferDesc = bufferDesc;
+    swapChainDesc.SampleDesc = GetSampleDescriptor();
+    swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    swapChainDesc.BufferCount = swapChainBufferCount;
+    swapChainDesc.OutputWindow = hWnd;
+    swapChainDesc.Windowed = true;
+    swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+    return swapChainDesc;
 }
 
 
@@ -211,8 +232,7 @@ void D3DRenderer::OnResize()
     depthStencilDesc.DepthOrArraySize = 1;
     depthStencilDesc.MipLevels = 1;
     depthStencilDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
-    depthStencilDesc.SampleDesc.Count = msaa4xState ? 4 : 1;
-    depthStencilDesc.SampleDesc.Quality = msaa4xState ? msaa4xQuality - 1 : 0;
+    depthStencilDesc.SampleDesc = GetSampleDescriptor();
     depthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
     depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
