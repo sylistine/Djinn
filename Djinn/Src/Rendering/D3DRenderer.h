@@ -11,6 +11,7 @@
 #include <DirectXColors.h>
 
 #include "Renderer.h"
+#include "SwapChain.h"
 #include "../Utils.h"
 
 
@@ -47,7 +48,6 @@ private:
     ComPtr<ID3D12Device> device;
     ComPtr<ID3D12Fence> fence;
     UINT64 currentFence = 0;
-    DXGI_FORMAT backBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
     bool msaa4xState = false;
     UINT msaa4xQuality = 0;
 
@@ -55,10 +55,8 @@ private:
     ComPtr<ID3D12CommandAllocator> directCommandListAlloc;
     ComPtr<ID3D12GraphicsCommandList> commandList;
 
-    ComPtr<IDXGISwapChain> swapChain;
-    static const int swapChainBufferCount = 2;
-    int currentBackBuffer;
-    ComPtr<ID3D12Resource> swapChainBuffer[swapChainBufferCount];
+    SwapChain *swapChain;
+    DXGI_FORMAT backBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
     UINT rtvDescriptorSize = 0;
     ComPtr<ID3D12DescriptorHeap> rtvHeap;
@@ -78,7 +76,6 @@ private:
     void OnResize();
     void FlushCommandQueue();
     bool CreateCommandObjects();
-    void CreateSwapChain();
     void CreateRtvAndDsvDescriptorHeaps();
 
 

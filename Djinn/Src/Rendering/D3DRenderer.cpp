@@ -317,34 +317,6 @@ bool D3DRenderer::CreateCommandObjects()
 }
 
 
-void D3DRenderer::CreateSwapChain()
-{
-    swapChain.Reset();
-
-    DXGI_SWAP_CHAIN_DESC swapChainDesc;
-    swapChainDesc.BufferDesc.Width = clientWidth;
-    swapChainDesc.BufferDesc.Height = clientHeight;
-    swapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
-    swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
-    swapChainDesc.BufferDesc.Format = backBufferFormat;
-    swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-    swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-    swapChainDesc.SampleDesc.Count = msaa4xState ? 4 : 1;
-    swapChainDesc.SampleDesc.Quality = msaa4xState ? (msaa4xQuality - 1) : 0;
-    swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    swapChainDesc.BufferCount = swapChainBufferCount;
-    swapChainDesc.OutputWindow = hWnd;
-    swapChainDesc.Windowed = true;
-    swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-    swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
-    ThrowIfFailed(dxgiFactory->CreateSwapChain(
-        commandQueue.Get(),
-        &swapChainDesc,
-        swapChain.GetAddressOf()));
-}
-
-
 void D3DRenderer::CreateRtvAndDsvDescriptorHeaps()
 {
     D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
