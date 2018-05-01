@@ -10,7 +10,10 @@ typedef enum MSAA_SAMPLE_LEVEL {
 class Renderer
 {
 public:
+    Renderer() = default;
     virtual ~Renderer() = default;
+
+
     virtual bool Initialize() = 0;
     virtual MSAA_SAMPLE_LEVEL GetMsaaSampleLevel() = 0;
     virtual void SetMsaaSampleLevel(MSAA_SAMPLE_LEVEL newLevel) = 0;

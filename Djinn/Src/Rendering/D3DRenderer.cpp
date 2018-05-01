@@ -4,6 +4,9 @@
 D3DRenderer::D3DRenderer(HWND hWnd, int width, int height) :
     hWnd(hWnd), clientWidth(width), clientHeight(height) { }
 
+D3DRenderer::D3DRenderer(const D3DRenderer& other) :
+    hWnd(other.hWnd), clientWidth(other.clientWidth), clientHeight(other.clientHeight) { }
+
 
 D3DRenderer::~D3DRenderer()
 {
@@ -14,12 +17,14 @@ D3DRenderer::~D3DRenderer()
 }
 
 
-MSAA_SAMPLE_LEVEL D3DRenderer::GetMsaaSampleLevel() {
+MSAA_SAMPLE_LEVEL D3DRenderer::GetMsaaSampleLevel()
+{
     return msaaSampleLevel;
 }
 
 
-void D3DRenderer::SetMsaaSampleLevel(MSAA_SAMPLE_LEVEL newLevel) {
+void D3DRenderer::SetMsaaSampleLevel(MSAA_SAMPLE_LEVEL newLevel)
+{
     if (msaaSampleLevel != newLevel) {
         msaaSampleLevel = newLevel;
         CreateSwapChain();

@@ -261,10 +261,11 @@ LRESULT WindowsApp::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         {
             PostQuitMessage(0);
         }
-        else if (static_cast<int>(wParam) == VK_F2)
+        else if (wParam == VK_F2)
         {
-            int currentSampleLevel = static_cast<int>(renderer->GetMsaaSampleLevel());
-            renderer->SetMsaaSampleLevel(static_cast<MSAA_SAMPLE_LEVEL>(currentSampleLevel++ % 3));
+            auto currentSampleLevel = static_cast<int>(renderer->GetMsaaSampleLevel());
+            auto newSampleLevel     = static_cast<MSAA_SAMPLE_LEVEL>((currentSampleLevel + 1) % 3);
+            renderer->SetMsaaSampleLevel(newSampleLevel);
         }
         return 0;
     }

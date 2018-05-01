@@ -26,13 +26,14 @@ class D3DRenderer : public Renderer
 {
 public:
     // ~tors
-    D3DRenderer(HWND, int, int);
-    ~D3DRenderer();
+    D3DRenderer(HWND hWnd, int width, int height);
+    D3DRenderer(const D3DRenderer& other);
+    ~D3DRenderer() override;
 
 public:
-    MSAA_SAMPLE_LEVEL GetMsaaSampleLevel() override;
-    void SetMsaaSampleLevel(MSAA_SAMPLE_LEVEL newLevel) override;
-    void SetClientDimensions(int width, int height) override;
+    MSAA_SAMPLE_LEVEL GetMsaaSampleLevel()override;
+    void SetMsaaSampleLevel(MSAA_SAMPLE_LEVEL newLevel)override;
+    void SetClientDimensions(int width, int height)override;
 private:
     ID3D12Resource *CurrentBackBuffer()const;
     D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
@@ -48,11 +49,11 @@ private:
     ComPtr<ID3D12Fence> fence;
     UINT64 currentFence = 0;
     UINT msaa4xMaxQuality = 0;
-    MSAA_SAMPLE_LEVEL msaaSampleLevel;
+    MSAA_SAMPLE_LEVEL msaaSampleLevel = MSAA_SAMPLE_LEVEL_1X;
 
     static const int swapChainBufferCount = 2;
     DXGI_FORMAT backBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-    int currentBackBuffer;
+    int currentBackBuffer = 0;
     ComPtr<IDXGISwapChain> swapChain;
     ComPtr<ID3D12Resource> swapChainBuffer[swapChainBufferCount];
 

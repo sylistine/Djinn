@@ -35,8 +35,8 @@ inline wstring AnsiToWString(const string& str)
     HRESULT errorcode = (x);                                     \
     wstring filename = AnsiToWString(__FILE__);                  \
     DxException e(errorcode, L#x, filename, __LINE__);           \
-    OutputDebugString(e.ToString().c_str());                     \
     if (FAILED(errorcode)) {                                     \
+        OutputDebugString(e.ToString().c_str());                 \
         throw e;                                                 \
     }                                                            \
 }
