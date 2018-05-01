@@ -11,8 +11,7 @@
 #include <DirectXColors.h>
 
 #include "Renderer.h"
-#include "SwapChain.h"
-#include "../Utils.h"
+#include "../stdinc.h"
 
 
 #pragma comment(lib,"d3dcompiler.lib")
@@ -31,8 +30,8 @@ public:
     ~D3DRenderer();
 
 public:
-    bool GetMsaa4xState() override;
-    void SetMsaa4xState(bool) override;
+    MSAA_SAMPLE_LEVEL GetMsaaSampleLevel() override;
+    void SetMsaaSampleLevel(MSAA_SAMPLE_LEVEL newLevel) override;
     void SetClientDimensions(int width, int height) override;
 private:
     ID3D12Resource *CurrentBackBuffer()const;
@@ -48,15 +47,18 @@ private:
     ComPtr<ID3D12Device> device;
     ComPtr<ID3D12Fence> fence;
     UINT64 currentFence = 0;
-    bool msaa4xState = false;
-    UINT msaa4xQuality = 0;
+    UINT msaa4xMaxQuality = 0;
+    MSAA_SAMPLE_LEVEL msaaSampleLevel;
+
+    static const int swapChainBufferCount = 2;
+    DXGI_FORMAT backBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+    int currentBackBuffer;
+    ComPtr<IDXGISwapChain> swapChain;
+    ComPtr<ID3D12Resource> swapChainBuffer[swapChainBufferCount];
 
     ComPtr<ID3D12CommandQueue> commandQueue;
     ComPtr<ID3D12CommandAllocator> directCommandListAlloc;
     ComPtr<ID3D12GraphicsCommandList> commandList;
-
-    SwapChain *swapChain;
-    DXGI_FORMAT backBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
     UINT rtvDescriptorSize = 0;
     ComPtr<ID3D12DescriptorHeap> rtvHeap;
@@ -76,8 +78,10 @@ private:
     void OnResize();
     void FlushCommandQueue();
     bool CreateCommandObjects();
+    void CreateSwapChain();
     void CreateRtvAndDsvDescriptorHeaps();
 
+    inline DXGI_SAMPLE_DESC GetSampleDescriptor();
 
     void LogAdapters();
     void LogAdapterOutputs(IDXGIAdapter* adapter);
