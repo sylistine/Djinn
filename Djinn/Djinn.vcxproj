@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="Src\Rendering\D3DRenderer.h" />
     <ClInclude Include="Src\Rendering\Renderer.h" />
+    <ClInclude Include="Src\stdinc.h" />
     <ClInclude Include="Src\Timer.h" />
     <ClInclude Include="Src\Utils.h" />
     <ClInclude Include="Src\WindowsApp.h" />
