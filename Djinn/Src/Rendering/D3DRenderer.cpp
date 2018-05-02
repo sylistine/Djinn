@@ -67,11 +67,11 @@ bool D3DRenderer::Initialize()
 
 #ifdef _DEBUG
     ComPtr<ID3D12Debug> debugController;
-    ThrowIfFailed(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)));
+    ThrowIfFailed(FINFO, D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)));
     debugController->EnableDebugLayer();
 #endif
 
-    ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)));
+    ThrowIfFailed(FINFO, CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)));
 
     HRESULT deviceCreateResult = D3D12CreateDevice(
         nullptr,
@@ -80,15 +80,15 @@ bool D3DRenderer::Initialize()
     if (FAILED(deviceCreateResult))
     {
         ComPtr<IDXGIAdapter> warpAdapter;
-        ThrowIfFailed(dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));
+        ThrowIfFailed(FINFO, dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));
 
-        ThrowIfFailed(D3D12CreateDevice(
+        ThrowIfFailed(FINFO, D3D12CreateDevice(
             warpAdapter.Get(),
             D3D_FEATURE_LEVEL_11_0,
             IID_PPV_ARGS(&device)));
     }
 
-    ThrowIfFailed(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)));
+    ThrowIfFailed(FINFO, device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)));
 
     rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     dsvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
@@ -99,7 +99,7 @@ bool D3DRenderer::Initialize()
     msQualityLevels.SampleCount = 4;
     msQualityLevels.Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE;
     msQualityLevels.NumQualityLevels = 0;
-    ThrowIfFailed(device->CheckFeatureSupport(
+    ThrowIfFailed(FINFO, device->CheckFeatureSupport(
         D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
         &msQualityLevels,
         sizeof msQualityLevels));
@@ -170,7 +170,7 @@ void D3DRenderer::CreateSwapChain()
     swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
     swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
-    ThrowIfFailed(dxgiFactory->CreateSwapChain(
+    ThrowIfFailed(FINFO, dxgiFactory->CreateSwapChain(
         commandQueue.Get(),
         &swapChainDesc,
         swapChain.GetAddressOf()));
@@ -180,9 +180,9 @@ void D3DRenderer::CreateSwapChain()
 /// The fun stuff! Finally!
 void D3DRenderer::Draw()
 {
-    ThrowIfFailed(directCommandListAlloc->Reset());
+    ThrowIfFailed(FINFO, directCommandListAlloc->Reset());
 
-    ThrowIfFailed(commandList->Reset(directCommandListAlloc.Get(), nullptr));
+    ThrowIfFailed(FINFO, commandList->Reset(directCommandListAlloc.Get(), nullptr));
 
     // TODO: this will probably be the first of many objects that get their own class.
     // This is way too verbose.
@@ -218,12 +218,12 @@ void D3DRenderer::Draw()
     renderTargetToPresent.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
     commandList->ResourceBarrier(1, &renderTargetToPresent);
 
-    ThrowIfFailed(commandList->Close());
+    ThrowIfFailed(FINFO, commandList->Close());
 
     ID3D12CommandList *commandLists[] = { commandList.Get() };
     commandQueue->ExecuteCommandLists(_countof(commandLists), commandLists);
 
-    ThrowIfFailed(swapChain->Present(0, 0));
+    ThrowIfFailed(FINFO, swapChain->Present(0, 0));
     currentBackBuffer = (currentBackBuffer + 1) % swapChainBufferCount;
 
     FlushCommandQueue();
@@ -233,14 +233,14 @@ void D3DRenderer::Draw()
 void D3DRenderer::OnResize()
 {
     FlushCommandQueue();
-    ThrowIfFailed(commandList->Reset(directCommandListAlloc.Get(), nullptr));
+    ThrowIfFailed(FINFO, commandList->Reset(directCommandListAlloc.Get(), nullptr));
     for (auto& i : swapChainBuffer)
     {
         i.Reset();
     }
     depthStencilBuffer.Reset();
 
-    ThrowIfFailed(swapChain->ResizeBuffers(
+    ThrowIfFailed(FINFO, swapChain->ResizeBuffers(
         swapChainBufferCount,
         clientWidth, clientHeight,
         backBufferFormat,
@@ -252,7 +252,7 @@ void D3DRenderer::OnResize()
     auto rtvHeapHandle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
     for (UINT i = 0; i < swapChainBufferCount; ++i)
     {
-        ThrowIfFailed(swapChain->GetBuffer(i, IID_PPV_ARGS(&swapChainBuffer[i])));
+        ThrowIfFailed(FINFO, swapChain->GetBuffer(i, IID_PPV_ARGS(&swapChainBuffer[i])));
         device->CreateRenderTargetView(
             swapChainBuffer[i].Get(),
             nullptr,
@@ -285,7 +285,7 @@ void D3DRenderer::OnResize()
     depthStencilHeapProperties.CreationNodeMask = 1;
     depthStencilHeapProperties.VisibleNodeMask = 1;
 
-    ThrowIfFailed(device->CreateCommittedResource(
+    ThrowIfFailed(FINFO, device->CreateCommittedResource(
         &depthStencilHeapProperties,
         D3D12_HEAP_FLAG_NONE,
         &depthStencilDesc,
@@ -313,7 +313,7 @@ void D3DRenderer::OnResize()
     commandListResourceBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
     commandList->ResourceBarrier(1, &commandListResourceBarrier);
 
-    ThrowIfFailed(commandList->Close());
+    ThrowIfFailed(FINFO, commandList->Close());
     ID3D12CommandList *commandLists[] = { commandList.Get() };
     commandQueue->ExecuteCommandLists(_countof(commandLists), commandLists);
 
@@ -336,12 +336,12 @@ void D3DRenderer::FlushCommandQueue()
 {
     currentFence++;
 
-    ThrowIfFailed(commandQueue->Signal(fence.Get(), currentFence));
+    ThrowIfFailed(FINFO, commandQueue->Signal(fence.Get(), currentFence));
 
     if (fence->GetCompletedValue() < currentFence)
     {
         HANDLE eventHandle = CreateEventEx(nullptr, false, false, EVENT_ALL_ACCESS);
-        ThrowIfFailed(fence->SetEventOnCompletion(currentFence, eventHandle));
+        ThrowIfFailed(FINFO, fence->SetEventOnCompletion(currentFence, eventHandle));
         WaitForSingleObject(eventHandle, INFINITE);
         CloseHandle(eventHandle);
     }
@@ -353,14 +353,14 @@ bool D3DRenderer::CreateCommandObjects()
     D3D12_COMMAND_QUEUE_DESC queueDesc = {};
     queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
     queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-    ThrowIfFailed(device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue)));
+    ThrowIfFailed(FINFO, device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue)));
 
-    ThrowIfFailed(device->CreateCommandAllocator(
+    ThrowIfFailed(FINFO, device->CreateCommandAllocator(
         D3D12_COMMAND_LIST_TYPE_DIRECT,
         IID_PPV_ARGS(directCommandListAlloc.GetAddressOf()))
     );
 
-    ThrowIfFailed(device->CreateCommandList(
+    ThrowIfFailed(FINFO, device->CreateCommandList(
         0,
         D3D12_COMMAND_LIST_TYPE_DIRECT,
         directCommandListAlloc.Get(),
@@ -381,7 +381,7 @@ void D3DRenderer::CreateRtvAndDsvDescriptorHeaps()
     rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
     rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
     rtvHeapDesc.NodeMask = 0;
-    ThrowIfFailed(device->CreateDescriptorHeap(
+    ThrowIfFailed(FINFO, device->CreateDescriptorHeap(
         &rtvHeapDesc, IID_PPV_ARGS(rtvHeap.GetAddressOf()))
     );
 
@@ -390,7 +390,7 @@ void D3DRenderer::CreateRtvAndDsvDescriptorHeaps()
     dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
     dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
     dsvHeapDesc.NodeMask = 0;
-    ThrowIfFailed(device->CreateDescriptorHeap(
+    ThrowIfFailed(FINFO, device->CreateDescriptorHeap(
         &dsvHeapDesc, IID_PPV_ARGS(dsvHeap.GetAddressOf()))
     );
 }

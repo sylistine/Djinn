@@ -31,12 +31,14 @@ inline wstring AnsiToWString(const string& str)
     return wstring(buffer);
 }
 
-#define ThrowIfFailed(x) {                                       \
-    HRESULT errorcode = (x);                                     \
-    wstring filename = AnsiToWString(__FILE__);                  \
-    DxException e(errorcode, L#x, filename, __LINE__);           \
-    if (FAILED(errorcode)) {                                     \
-        OutputDebugString(e.ToString().c_str());                 \
-        throw e;                                                 \
-    }                                                            \
+#define FINFO __FILEW__, __FUNCTIONW__, __LINE__
+
+inline void ThrowIfFailed(const wstring& filename, const wstring& functionname, const int linenumber, const HRESULT result)
+{
+    if (FAILED(result))
+    {
+        DxException e(result, functionname, filename, linenumber);
+        OutputDebugString(e.ToString().c_str());
+        throw e;
+    }
 }
