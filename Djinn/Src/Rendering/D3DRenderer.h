@@ -10,6 +10,8 @@
 #include <DirectXMath.h>
 #include <DirectXColors.h>
 
+#include "d3dx12.h"
+
 #include "Renderer.h"
 #include "../stdinc.h"
 

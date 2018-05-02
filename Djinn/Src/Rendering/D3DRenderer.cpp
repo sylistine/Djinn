@@ -104,7 +104,6 @@ bool D3DRenderer::Initialize()
         &msQualityLevels,
         sizeof msQualityLevels));
     msaa4xMaxQuality = msQualityLevels.NumQualityLevels - 1;
-    if (msaa4xMaxQuality < 0) return false;
 
 #if _DEBUG
     LogAdapters();
@@ -184,15 +183,8 @@ void D3DRenderer::Draw()
 
     ThrowIfFailed(FINFO, commandList->Reset(directCommandListAlloc.Get(), nullptr));
 
-    // TODO: this will probably be the first of many objects that get their own class.
-    // This is way too verbose.
-    D3D12_RESOURCE_BARRIER presentToRenderTarget;
-    ZeroMemory(&presentToRenderTarget, sizeof presentToRenderTarget);
-    presentToRenderTarget.Transition.pResource = CurrentBackBuffer();
-    presentToRenderTarget.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-    presentToRenderTarget.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-    presentToRenderTarget.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-    commandList->ResourceBarrier(1, &presentToRenderTarget);
+    commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
+        D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
     commandList->RSSetViewports(1, &screenViewport);
     commandList->RSSetScissorRects(1, &scissorRect);
@@ -201,8 +193,7 @@ void D3DRenderer::Draw()
     commandList->ClearRenderTargetView(
         CurrentBackBufferView(),
         DirectX::Colors::Black,
-        0,
-        nullptr);
+        0, nullptr);
     commandList->ClearDepthStencilView(
         DepthStencilView(),
         D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
@@ -210,13 +201,8 @@ void D3DRenderer::Draw()
 
     commandList->OMSetRenderTargets(1, &CurrentBackBufferView(), true, &DepthStencilView());
 
-    D3D12_RESOURCE_BARRIER renderTargetToPresent;
-    ZeroMemory(&renderTargetToPresent, sizeof renderTargetToPresent);
-    renderTargetToPresent.Transition.pResource = CurrentBackBuffer();
-    renderTargetToPresent.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-    renderTargetToPresent.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-    renderTargetToPresent.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-    commandList->ResourceBarrier(1, &renderTargetToPresent);
+    commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
+        D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 
     ThrowIfFailed(FINFO, commandList->Close());
 
@@ -304,14 +290,8 @@ void D3DRenderer::OnResize()
         &dsvDesc,
         dsvHeap->GetCPUDescriptorHandleForHeapStart());
 
-    // Prepare CommandList and CommandQueue
-    D3D12_RESOURCE_BARRIER commandListResourceBarrier;
-    ZeroMemory(&commandListResourceBarrier, sizeof commandListResourceBarrier);
-    commandListResourceBarrier.Transition.pResource = depthStencilBuffer.Get();
-    commandListResourceBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COMMON;
-    commandListResourceBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-    commandListResourceBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-    commandList->ResourceBarrier(1, &commandListResourceBarrier);
+    commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(depthStencilBuffer.Get(),
+        D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
 
     ThrowIfFailed(FINFO, commandList->Close());
     ID3D12CommandList *commandLists[] = { commandList.Get() };
