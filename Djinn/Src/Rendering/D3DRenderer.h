@@ -51,6 +51,7 @@ private:
     ComPtr<ID3D12Fence> fence;
     UINT64 currentFence = 0;
     UINT msaa4xMaxQuality = 0;
+    UINT msaa8xMaxQuality = 0;
     MSAA_SAMPLE_LEVEL msaaSampleLevel = MSAA_SAMPLE_LEVEL_1X;
 
     static const int swapChainBufferCount = 2;
@@ -84,7 +85,7 @@ private:
     void CreateSwapChain();
     void CreateRtvAndDsvDescriptorHeaps();
 
-    inline DXGI_SAMPLE_DESC GetSampleDescriptor();
+    inline DXGI_SAMPLE_DESC GetSampleDescriptor()const;
 
     void LogAdapters();
     void LogAdapterOutputs(IDXGIAdapter* adapter);

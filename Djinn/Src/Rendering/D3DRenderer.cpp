@@ -64,20 +64,19 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3DRenderer::DepthStencilView()const
 
 bool D3DRenderer::Initialize()
 {
-
 #ifdef _DEBUG
+    // Init debug layer
     ComPtr<ID3D12Debug> debugController;
     ThrowIfFailed(FINFO, D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)));
     debugController->EnableDebugLayer();
 #endif
 
+    // Create primary D3D resources.
+    // dxgiFactory, virtual device, and fence
     ThrowIfFailed(FINFO, CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)));
 
-    HRESULT deviceCreateResult = D3D12CreateDevice(
-        nullptr,
-        D3D_FEATURE_LEVEL_11_0,
-        IID_PPV_ARGS(&device));
-    if (FAILED(deviceCreateResult))
+    auto hresult = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device));
+    if (FAILED(hresult))
     {
         ComPtr<IDXGIAdapter> warpAdapter;
         ThrowIfFailed(FINFO, dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));
@@ -87,13 +86,13 @@ bool D3DRenderer::Initialize()
             D3D_FEATURE_LEVEL_11_0,
             IID_PPV_ARGS(&device)));
     }
+#if _DEBUG
+    LogAdapters();
+#endif
 
     ThrowIfFailed(FINFO, device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)));
-
-    rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    dsvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-    cbvSrvUavDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     
+    // Update MSAA info.
     D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
     msQualityLevels.Format = backBufferFormat;
     msQualityLevels.SampleCount = 4;
@@ -101,18 +100,21 @@ bool D3DRenderer::Initialize()
     msQualityLevels.NumQualityLevels = 0;
     ThrowIfFailed(FINFO, device->CheckFeatureSupport(
         D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
-        &msQualityLevels,
-        sizeof msQualityLevels));
+        &msQualityLevels, sizeof msQualityLevels));
     msaa4xMaxQuality = msQualityLevels.NumQualityLevels - 1;
-
-#if _DEBUG
-    LogAdapters();
-#endif
+    msQualityLevels.SampleCount = 8;
+    ThrowIfFailed(FINFO, device->CheckFeatureSupport(
+        D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
+        &msQualityLevels, sizeof msQualityLevels));
+    msaa8xMaxQuality = msQualityLevels.NumQualityLevels - 1;
 
     CreateCommandObjects();
 
     CreateSwapChain();
 
+    rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    dsvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+    cbvSrvUavDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     CreateRtvAndDsvDescriptorHeaps();
 
     // Run this code once after initialization.
@@ -120,59 +122,6 @@ bool D3DRenderer::Initialize()
 
     initialized = true;
     return true;
-}
-
-inline DXGI_SAMPLE_DESC D3DRenderer::GetSampleDescriptor() {
-    uint count;
-    uint quality;
-    switch (msaaSampleLevel) {
-    case MSAA_SAMPLE_LEVEL_4X:
-        count = 4;
-        quality = msaa4xMaxQuality;
-        break;
-    case MSAA_SAMPLE_LEVEL_8X:
-        count = 8;
-        quality = msaa4xMaxQuality;
-        break;
-    default:
-        count = 1;
-        quality = 0;
-        break;
-    }
-    
-    DXGI_SAMPLE_DESC sampleDesc;
-    sampleDesc.Count = count;
-    sampleDesc.Quality = quality;
-    return sampleDesc;
-}
-
-void D3DRenderer::CreateSwapChain()
-{
-    swapChain.Reset();
-
-    DXGI_MODE_DESC bufferDesc;
-    bufferDesc.Width = clientWidth;
-    bufferDesc.Height = clientHeight;
-    bufferDesc.RefreshRate.Numerator = 60;
-    bufferDesc.RefreshRate.Denominator = 1;
-    bufferDesc.Format = backBufferFormat;
-    bufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-    bufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-
-    DXGI_SWAP_CHAIN_DESC swapChainDesc;
-    swapChainDesc.BufferDesc = bufferDesc;
-    swapChainDesc.SampleDesc = GetSampleDescriptor();
-    swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    swapChainDesc.BufferCount = swapChainBufferCount;
-    swapChainDesc.OutputWindow = hWnd;
-    swapChainDesc.Windowed = true;
-    swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-    swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
-    ThrowIfFailed(FINFO, dxgiFactory->CreateSwapChain(
-        commandQueue.Get(),
-        &swapChainDesc,
-        swapChain.GetAddressOf()));
 }
 
 
@@ -351,6 +300,62 @@ bool D3DRenderer::CreateCommandObjects()
     commandList->Close();
 
     return true;
+}
+
+
+inline DXGI_SAMPLE_DESC D3DRenderer::GetSampleDescriptor()const
+{
+    uint count;
+    uint quality;
+    switch (msaaSampleLevel) {
+    case MSAA_SAMPLE_LEVEL_4X:
+        count = 4;
+        quality = msaa4xMaxQuality;
+        break;
+    case MSAA_SAMPLE_LEVEL_8X:
+        count = 8;
+        quality = msaa8xMaxQuality;
+        break;
+    default:
+        count = 1;
+        quality = 0;
+        break;
+    }
+
+    DXGI_SAMPLE_DESC sampleDesc;
+    sampleDesc.Count = count;
+    sampleDesc.Quality = quality;
+    return sampleDesc;
+}
+
+
+void D3DRenderer::CreateSwapChain()
+{
+    swapChain.Reset();
+
+    DXGI_MODE_DESC bufferDesc;
+    bufferDesc.Width = clientWidth;
+    bufferDesc.Height = clientHeight;
+    bufferDesc.RefreshRate.Numerator = 60;
+    bufferDesc.RefreshRate.Denominator = 1;
+    bufferDesc.Format = backBufferFormat;
+    bufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+    bufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+
+    DXGI_SWAP_CHAIN_DESC swapChainDesc;
+    swapChainDesc.BufferDesc = bufferDesc;
+    swapChainDesc.SampleDesc = GetSampleDescriptor();
+    swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    swapChainDesc.BufferCount = swapChainBufferCount;
+    swapChainDesc.OutputWindow = hWnd;
+    swapChainDesc.Windowed = true;
+    swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+    ThrowIfFailed(FINFO, dxgiFactory->CreateSwapChain(
+        commandQueue.Get(),
+        &swapChainDesc,
+        swapChain.GetAddressOf()));
 }
 
 
