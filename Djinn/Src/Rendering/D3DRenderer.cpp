@@ -2,10 +2,7 @@
 
 
 D3DRenderer::D3DRenderer(HWND hWnd, int width, int height) :
-    hWnd(hWnd), clientWidth(width), clientHeight(height) { }
-
-D3DRenderer::D3DRenderer(const D3DRenderer& other) :
-    hWnd(other.hWnd), clientWidth(other.clientWidth), clientHeight(other.clientHeight) { }
+    hWnd(hWnd), clientWidth(width), clientHeight(height), screenViewport(), scissorRect() { }
 
 
 D3DRenderer::~D3DRenderer()

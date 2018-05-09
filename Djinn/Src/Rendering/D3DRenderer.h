@@ -29,8 +29,9 @@ class D3DRenderer : public Renderer
 public:
     // ~tors
     D3DRenderer(HWND hWnd, int width, int height);
-    D3DRenderer(const D3DRenderer& other);
     ~D3DRenderer() override;
+private:
+    D3DRenderer(const D3DRenderer& other);
 
 public:
     MSAA_SAMPLE_LEVEL GetMsaaSampleLevel()override;
