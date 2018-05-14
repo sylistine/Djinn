@@ -19,8 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\Math.h" />
     <ClInclude Include="Src\Rendering\D3DRenderer.h" />
     <ClInclude Include="Src\Rendering\d3dx12.h" />
+    <ClInclude Include="Src\Rendering\Mesh.h" />
     <ClInclude Include="Src\Rendering\Renderer.h" />
     <ClInclude Include="Src\stdinc.h" />
     <ClInclude Include="Src\Timer.h" />
@@ -29,7 +31,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\main.cpp" />
+    <ClCompile Include="Src\Math.cpp" />
     <ClCompile Include="Src\Rendering\D3DRenderer.cpp" />
+    <ClCompile Include="Src\Rendering\Mesh.cpp" />
     <ClCompile Include="Src\Timer.cpp" />
     <ClCompile Include="Src\Utils.cpp" />
     <ClCompile Include="Src\WindowsApp.cpp" />
