@@ -19,6 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\AppWrapper.h" />
+    <ClInclude Include="Src\InputManager.h" />
+    <ClInclude Include="Src\MainApp.h" />
     <ClInclude Include="Src\Math.h" />
     <ClInclude Include="Src\Rendering\D3DRenderer.h" />
     <ClInclude Include="Src\Rendering\d3dx12.h" />
@@ -30,7 +33,9 @@
     <ClInclude Include="Src\WindowsApp.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\InputManager.cpp" />
     <ClCompile Include="Src\main.cpp" />
+    <ClCompile Include="Src\MainApp.cpp" />
     <ClCompile Include="Src\Math.cpp" />
     <ClCompile Include="Src\Rendering\D3DRenderer.cpp" />
     <ClCompile Include="Src\Rendering\Mesh.cpp" />

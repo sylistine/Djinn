@@ -6,20 +6,23 @@
 #include <WindowsX.h>
 
 #include "Rendering/D3DRenderer.h"
+#include "MainApp.h"
 
 #include "Timer.h"
 
-class WindowsApp {
+class WindowsApp : public AppWrapper
+{
 public:
     // tors
     WindowsApp(HINSTANCE hInstance);
     ~WindowsApp();
     // statics
-    static WindowsApp *app;
+    static WindowsApp *windowsApp;
     static WindowsApp *GetApp();
     //publics
     bool Initialize();
     int Run();
+    Renderer *GetRenderer() override;
     LRESULT WndProc(HWND, UINT, WPARAM, LPARAM);
 private:
     // Windows parameters.
@@ -27,14 +30,13 @@ private:
     HWND hWnd;
     Timer timer;
     Renderer *renderer;
+    MainApp *app;
     int windowWidth = 800;
     int windowHeight = 600;
     // Initialization.
     bool initialized = false;
     bool InitializeWindow();
-    // Game logic
-    void Update();
-    void Draw();
+    // WndProc message handlers.
     void OnMouseDown(WPARAM, int, int);
     void OnMouseUp(WPARAM, int, int);
     void OnMouseMove(WPARAM, int, int);

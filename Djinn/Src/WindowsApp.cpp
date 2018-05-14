@@ -1,5 +1,6 @@
 #include "WindowsApp.h"
 
+/// GLOBAL
 LRESULT WINAPI MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     return WindowsApp::GetApp()->WndProc(hWnd, msg, wParam, lParam);
@@ -7,17 +8,17 @@ LRESULT WINAPI MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 WindowsApp::WindowsApp(HINSTANCE hInstance) : hInstance(hInstance)
 {
-    assert(app == nullptr);
-    app = this;
+    assert(windowsApp == nullptr);
+    windowsApp = this;
 }
 
 WindowsApp::~WindowsApp() = default;
 
 
-WindowsApp *WindowsApp::app = nullptr;
+WindowsApp *WindowsApp::windowsApp = nullptr;
 WindowsApp *WindowsApp::GetApp()
 {
-    return app;
+    return windowsApp;
 }
 
 
@@ -30,12 +31,19 @@ bool WindowsApp::Initialize()
             return false;
         }
 
+        // We will later allow the app to get a new renderer,
+        // but we default to D3D.
+        // Later perhaps we can create a pre-launch window,
+        // or remember the user's setting in subsequent launching.
         renderer = new D3DRenderer(hWnd, windowWidth, windowHeight);
 
         if (!renderer->Initialize())
         {
             return false;
         }
+
+        app = new MainApp(this);
+
 
         initialized = true;
     }
@@ -116,8 +124,7 @@ int WindowsApp::Run()
                 timer.UpdateFrameStats();
 
                 // TODO: Update and Draw should be left up to a platform agnostic Game or App class.
-                Update();
-                renderer->Draw();
+                app->Update();
             }
             else
             {
@@ -130,8 +137,9 @@ int WindowsApp::Run()
 }
 
 
-void WindowsApp::Update()
+Renderer *WindowsApp::GetRenderer()
 {
+    return renderer;
 }
 
 
@@ -257,6 +265,7 @@ LRESULT WindowsApp::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
         return 0;
     case WM_KEYUP:
+        // We only capture esc and f2 right now.
         if (wParam == VK_ESCAPE)
         {
             PostQuitMessage(0);
