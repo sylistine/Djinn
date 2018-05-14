@@ -3,7 +3,7 @@
 // cmath extensions
 inline float Djinn::Math::cot(const float& theta)
 {
-    return tan(PI_DIVIDED_BY_TWO - theta);
+    return tan(XM_PIDIV2 - theta);
 }
 
 inline float Djinn::Math::oneOver(const float& a)
@@ -12,23 +12,22 @@ inline float Djinn::Math::oneOver(const float& a)
 }
 
 // Vector math extensions.
-inline float Dot(const XMVECTOR& a, const XMVECTOR& b)
+inline float Djinn::Math::Dot(FXMVECTOR a, FXMVECTOR b)
 {
     // return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
     return XMVectorGetX(XMVector3Dot(a, b));
 }
 
 // Vector math abstractions.
-inline float Djinn::Math::Magnitude(const XMVECTOR& vector)
+inline float Djinn::Math::Magnitude(FXMVECTOR vector)
 {
     return 0;
 }
 
-XMVECTOR Djinn::Math::Proj(const XMVECTOR v, const XMVECTOR n)
+XMVECTOR Djinn::Math::Proj(FXMVECTOR v, FXMVECTOR n)
 {
-    /*
-    * return dot(v, n) / pow(magnitude(n), 2.0f) * n
-    */
+    return XMVector3Dot(v, n) / XMVector3LengthSq(n) * n;
+    
     XMVECTOR proj;
     XMVector3ComponentsFromNormal(&proj, nullptr, v, n);
     return proj;
@@ -48,7 +47,7 @@ XMFLOAT4X4 Djinn::Math::Identity()
 
 // Presently for reference only. Use XMMatrixLookAtLH()
 XMFLOAT4X4 Djinn::Math::ViewTransform(
-    const XMVECTOR& eyePos, const XMVECTOR& lookDir, const XMVECTOR& up)
+    FXMVECTOR eyePos, FXMVECTOR lookDir, FXMVECTOR up)
 {
     // Get the camera's axes.
     XMVECTOR w = lookDir - eyePos; // camera z-axis/forward.

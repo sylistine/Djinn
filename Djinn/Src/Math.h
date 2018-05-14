@@ -2,7 +2,6 @@
 
 #include <cmath>
 #include <DirectXMath.h>
-#include <wincrypt.h>
 
 using namespace DirectX;
 
@@ -10,20 +9,25 @@ namespace Djinn
 {
     class Math
     {
-        const float PI = 3.1415926535f;
-        const float PI_DIVIDED_BY_TWO = PI / 2.0f;
-
+        // cmath extensions.
         inline float cot(const float& theta);
 
         inline float oneOver(const float& a);
 
-        // Vector math abstractions.
-        inline float Magnitude(const XMVECTOR& vector);
+        // Vector math extensions.
+        inline float Dot(FXMVECTOR a, FXMVECTOR b);
 
-        XMVECTOR Proj(const XMVECTOR v, const XMVECTOR n);
+        // Vector math abstractions.
+        inline float Magnitude(FXMVECTOR vector);
+
+        XMVECTOR Proj(FXMVECTOR v, FXMVECTOR n);
 
         // Matrix math abstractions.
         XMFLOAT4X4 Identity();
+
+        // Use XMMatrixLookAtLH()
+        XMFLOAT4X4 ViewTransform(
+            FXMVECTOR eyePos, FXMVECTOR lookDir, FXMVECTOR up);
 
         // Use XMMatrixPerspectiveFovLH() or ...RH()
         XMFLOAT4X4 Perspective(
@@ -31,9 +35,5 @@ namespace Djinn
             const float far,
             const float fov,
             const float aspect);
-
-        // Use XMMatrixLookAtLH()
-        XMFLOAT4X4 ViewTransform(
-            const XMVECTOR& eyePos, const XMVECTOR& lookDir, const XMVECTOR& up);
     };
 }
