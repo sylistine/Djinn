@@ -19,6 +19,12 @@
     <Filter Include="Source Files\Rendering">
       <UniqueIdentifier>{9e967cfd-05d0-48a3-928b-64663813fd89}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Rendering\DirectX">
+      <UniqueIdentifier>{43fdb626-660a-46d2-9a86-c11c4975f575}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Rendering\DirectX">
+      <UniqueIdentifier>{8f6970a8-0201-404e-9e5c-d6579ff35d58}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Timer.h">
@@ -30,17 +36,8 @@
     <ClInclude Include="Src\Rendering\Renderer.h">
       <Filter>Header Files\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Rendering\D3DRenderer.h">
-      <Filter>Header Files\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Src\stdinc.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Rendering\d3dx12.h">
-      <Filter>Header Files\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Src\Rendering\Mesh.h">
       <Filter>Header Files\Rendering</Filter>
@@ -57,6 +54,18 @@
     <ClInclude Include="Src\AppWrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Rendering\DirectX\d3dx12.h">
+      <Filter>Header Files\Rendering\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Scene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Rendering\DirectX\D3DRenderer.h">
+      <Filter>Header Files\Rendering\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Rendering\DirectX\DxException.h">
+      <Filter>Header Files\Rendering\DirectX</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\main.cpp">
@@ -66,12 +75,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\WindowsApp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Rendering\D3DRenderer.cpp">
-      <Filter>Source Files\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\Rendering\Mesh.cpp">
@@ -85,6 +88,15 @@
     </ClCompile>
     <ClCompile Include="Src\MainApp.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Rendering\DirectX\D3DRenderer.cpp">
+      <Filter>Source Files\Rendering\DirectX</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Rendering\DirectX\DxException.cpp">
+      <Filter>Source Files\Rendering\DirectX</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

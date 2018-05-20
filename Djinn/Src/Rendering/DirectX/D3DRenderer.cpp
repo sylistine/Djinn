@@ -1,5 +1,7 @@
 #include "D3DRenderer.h"
 
+#include "DxException.h"
+
 
 D3DRenderer::D3DRenderer(HWND hWnd, int width, int height) :
     hWnd(hWnd), clientWidth(width), clientHeight(height), screenViewport(), scissorRect() { }
@@ -302,8 +304,8 @@ bool D3DRenderer::CreateCommandObjects()
 
 inline DXGI_SAMPLE_DESC D3DRenderer::GetSampleDescriptor()const
 {
-    uint count;
-    uint quality;
+    UINT count;
+    UINT quality;
     switch (msaaSampleLevel) {
     case MSAA_SAMPLE_LEVEL_4X:
         count = 4;
@@ -442,10 +444,10 @@ void D3DRenderer::LogOutputDisplayModes(IDXGIOutput* output, const DXGI_FORMAT f
     {
         UINT num = modeList[i].RefreshRate.Numerator;
         UINT den = modeList[i].RefreshRate.Denominator;
-        wstring text =
-            to_wstring(modeList[i].Width) + L"x" +
-            to_wstring(modeList[i].Height) + L"@" +
-            to_wstring(num) + L"/" + to_wstring(den) + L"hz\n";
+        std::wstring text =
+            std::to_wstring(modeList[i].Width) + L"x" +
+            std::to_wstring(modeList[i].Height) + L"@" +
+            std::to_wstring(num) + L"/" + std::to_wstring(den) + L"hz\n";
 
         OutputDebugString(text.c_str());
     }

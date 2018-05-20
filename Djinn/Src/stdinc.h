@@ -1,10 +1,13 @@
 #pragma once
 
-// #if windows
 #include <Windows.h>
-// #endif
 
-#include "Utils.h"
+#include <string>
 
 
-typedef unsigned int uint;
+inline std::wstring MultiByteToWideString(const std::string& str)
+{
+    WCHAR buffer[512];
+    MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, buffer, 512);
+    return std::wstring(buffer);
+}

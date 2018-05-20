@@ -5,7 +5,7 @@
 #include <Windows.h>
 #include <WindowsX.h>
 
-#include "Rendering/D3DRenderer.h"
+#include "Rendering/DirectX/D3DRenderer.h"
 #include "MainApp.h"
 
 #include "Timer.h"

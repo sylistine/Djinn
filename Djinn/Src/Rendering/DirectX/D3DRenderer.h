@@ -12,8 +12,7 @@
 
 #include "d3dx12.h"
 
-#include "Renderer.h"
-#include "../stdinc.h"
+#include "../Renderer.h"
 
 
 #pragma comment(lib,"d3dcompiler.lib")

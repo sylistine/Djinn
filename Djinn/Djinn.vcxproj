@@ -23,13 +23,14 @@
     <ClInclude Include="Src\InputManager.h" />
     <ClInclude Include="Src\MainApp.h" />
     <ClInclude Include="Src\Math.h" />
-    <ClInclude Include="Src\Rendering\D3DRenderer.h" />
-    <ClInclude Include="Src\Rendering\d3dx12.h" />
+    <ClInclude Include="Src\Rendering\DirectX\D3DRenderer.h" />
+    <ClInclude Include="Src\Rendering\DirectX\d3dx12.h" />
+    <ClInclude Include="Src\Rendering\DirectX\DxException.h" />
     <ClInclude Include="Src\Rendering\Mesh.h" />
     <ClInclude Include="Src\Rendering\Renderer.h" />
+    <ClInclude Include="Src\Scene.h" />
     <ClInclude Include="Src\stdinc.h" />
     <ClInclude Include="Src\Timer.h" />
-    <ClInclude Include="Src\Utils.h" />
     <ClInclude Include="Src\WindowsApp.h" />
   </ItemGroup>
   <ItemGroup>
@@ -37,10 +38,11 @@
     <ClCompile Include="Src\main.cpp" />
     <ClCompile Include="Src\MainApp.cpp" />
     <ClCompile Include="Src\Math.cpp" />
-    <ClCompile Include="Src\Rendering\D3DRenderer.cpp" />
+    <ClCompile Include="Src\Rendering\DirectX\D3DRenderer.cpp" />
+    <ClCompile Include="Src\Rendering\DirectX\DxException.cpp" />
     <ClCompile Include="Src\Rendering\Mesh.cpp" />
+    <ClCompile Include="Src\Scene.cpp" />
     <ClCompile Include="Src\Timer.cpp" />
-    <ClCompile Include="Src\Utils.cpp" />
     <ClCompile Include="Src\WindowsApp.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
