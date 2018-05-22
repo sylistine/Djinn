@@ -1,13 +1,13 @@
-#include "D3DRenderer.h"
+#include "DX12RHI.h"
 
 #include "DxException.h"
 
 
-D3DRenderer::D3DRenderer(HWND hWnd, int width, int height) :
+DX12RHI::DX12RHI(HWND hWnd, int width, int height) :
     hWnd(hWnd), clientWidth(width), clientHeight(height), screenViewport(), scissorRect() { }
 
 
-D3DRenderer::~D3DRenderer()
+DX12RHI::~DX12RHI()
 {
     if (device != nullptr)
     {
@@ -16,13 +16,13 @@ D3DRenderer::~D3DRenderer()
 }
 
 
-MSAA_SAMPLE_LEVEL D3DRenderer::GetMsaaSampleLevel()
+MSAA_SAMPLE_LEVEL DX12RHI::GetMsaaSampleLevel()
 {
     return msaaSampleLevel;
 }
 
 
-void D3DRenderer::SetMsaaSampleLevel(MSAA_SAMPLE_LEVEL newLevel)
+void DX12RHI::SetMsaaSampleLevel(MSAA_SAMPLE_LEVEL newLevel)
 {
     if (msaaSampleLevel != newLevel) {
         msaaSampleLevel = newLevel;
@@ -32,7 +32,13 @@ void D3DRenderer::SetMsaaSampleLevel(MSAA_SAMPLE_LEVEL newLevel)
 }
 
 
-void D3DRenderer::SetClientDimensions(int width, int height)
+bool DX12RHI::IsInitialized()
+{
+    return initialized;
+}
+
+
+void DX12RHI::SetClientDimensions(int width, int height)
 {
     clientWidth = width;
     clientHeight = height;
@@ -40,13 +46,13 @@ void D3DRenderer::SetClientDimensions(int width, int height)
 }
 
 
-ID3D12Resource *D3DRenderer::CurrentBackBuffer()const
+ID3D12Resource *DX12RHI::CurrentBackBuffer()const
 {
     return swapChainBuffer[currentBackBuffer].Get();
 }
 
 
-D3D12_CPU_DESCRIPTOR_HANDLE D3DRenderer::CurrentBackBufferView()const
+D3D12_CPU_DESCRIPTOR_HANDLE DX12RHI::CurrentBackBufferView()const
 {
     D3D12_CPU_DESCRIPTOR_HANDLE handle;
     handle.ptr = rtvHeap->GetCPUDescriptorHandleForHeapStart().ptr +
@@ -55,13 +61,13 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3DRenderer::CurrentBackBufferView()const
 }
 
 
-D3D12_CPU_DESCRIPTOR_HANDLE D3DRenderer::DepthStencilView()const
+D3D12_CPU_DESCRIPTOR_HANDLE DX12RHI::DepthStencilView()const
 {
     return dsvHeap->GetCPUDescriptorHandleForHeapStart();
 }
 
 
-bool D3DRenderer::Initialize()
+bool DX12RHI::Initialize()
 {
 #ifdef _DEBUG
     // Init debug layer
@@ -90,7 +96,7 @@ bool D3DRenderer::Initialize()
 #endif
 
     ThrowIfFailed(FINFO, device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)));
-    
+
     // Update MSAA info.
     D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
     msQualityLevels.Format = backBufferFormat;
@@ -125,7 +131,7 @@ bool D3DRenderer::Initialize()
 
 
 /// The fun stuff! Finally!
-void D3DRenderer::Draw()
+void DX12RHI::Draw()
 {
     ThrowIfFailed(FINFO, directCommandListAlloc->Reset());
 
@@ -164,7 +170,7 @@ void D3DRenderer::Draw()
 }
 
 
-void D3DRenderer::OnResize()
+void DX12RHI::OnResize()
 {
     FlushCommandQueue();
     ThrowIfFailed(FINFO, commandList->Reset(directCommandListAlloc.Get(), nullptr));
@@ -260,7 +266,7 @@ void D3DRenderer::OnResize()
 
 
 /// Blocks until GPU finishes handling commands.
-void D3DRenderer::FlushCommandQueue()
+void DX12RHI::FlushCommandQueue()
 {
     currentFence++;
 
@@ -276,7 +282,7 @@ void D3DRenderer::FlushCommandQueue()
 }
 
 
-bool D3DRenderer::CreateCommandObjects()
+bool DX12RHI::CreateCommandObjects()
 {
     D3D12_COMMAND_QUEUE_DESC queueDesc = {};
     queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
@@ -302,7 +308,7 @@ bool D3DRenderer::CreateCommandObjects()
 }
 
 
-inline DXGI_SAMPLE_DESC D3DRenderer::GetSampleDescriptor()const
+inline DXGI_SAMPLE_DESC DX12RHI::GetSampleDescriptor()const
 {
     UINT count;
     UINT quality;
@@ -328,7 +334,7 @@ inline DXGI_SAMPLE_DESC D3DRenderer::GetSampleDescriptor()const
 }
 
 
-void D3DRenderer::CreateSwapChain()
+void DX12RHI::CreateSwapChain()
 {
     swapChain.Reset();
 
@@ -358,7 +364,7 @@ void D3DRenderer::CreateSwapChain()
 }
 
 
-void D3DRenderer::CreateRtvAndDsvDescriptorHeaps()
+void DX12RHI::CreateRtvAndDsvDescriptorHeaps()
 {
     D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
     rtvHeapDesc.NumDescriptors = swapChainBufferCount;
@@ -380,12 +386,12 @@ void D3DRenderer::CreateRtvAndDsvDescriptorHeaps()
 }
 
 
-void D3DRenderer::LogAdapters()
+void DX12RHI::LogAdapters()
 {
     UINT i = 0;
     IDXGIAdapter *adapter = nullptr;
     std::vector<IDXGIAdapter*> adapters;
-    while(dxgiFactory->EnumAdapters(i++, &adapter) != DXGI_ERROR_NOT_FOUND)
+    while (dxgiFactory->EnumAdapters(i++, &adapter) != DXGI_ERROR_NOT_FOUND)
     {
         DXGI_ADAPTER_DESC desc;
         adapter->GetDesc(&desc);
@@ -408,7 +414,7 @@ void D3DRenderer::LogAdapters()
 }
 
 
-void D3DRenderer::LogAdapterOutputs(IDXGIAdapter* adapter)
+void DX12RHI::LogAdapterOutputs(IDXGIAdapter* adapter)
 {
     UINT i = 0;
     IDXGIOutput* output = nullptr;
@@ -431,7 +437,7 @@ void D3DRenderer::LogAdapterOutputs(IDXGIAdapter* adapter)
 }
 
 
-void D3DRenderer::LogOutputDisplayModes(IDXGIOutput* output, const DXGI_FORMAT format)
+void DX12RHI::LogOutputDisplayModes(IDXGIOutput* output, const DXGI_FORMAT format)
 {
     UINT flags = 0;
 

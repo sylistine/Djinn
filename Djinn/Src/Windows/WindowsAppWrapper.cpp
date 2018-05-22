@@ -1,28 +1,33 @@
-#include "WindowsApp.h"
+#include "WindowsAppWrapper.h"
 
-/// GLOBAL
+using namespace Djinn;
+
 LRESULT WINAPI MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    return WindowsApp::GetApp()->WndProc(hWnd, msg, wParam, lParam);
+    return WindowsAppWrapper::GetApp()->WndProc(hWnd, msg, wParam, lParam);
 }
 
-WindowsApp::WindowsApp(HINSTANCE hInstance) : hInstance(hInstance)
+
+WindowsAppWrapper::WindowsAppWrapper(HINSTANCE hInstance) : hInstance(hInstance)
 {
     assert(windowsApp == nullptr);
     windowsApp = this;
 }
 
-WindowsApp::~WindowsApp() = default;
+
+WindowsAppWrapper::~WindowsAppWrapper() = default;
 
 
-WindowsApp *WindowsApp::windowsApp = nullptr;
-WindowsApp *WindowsApp::GetApp()
+WindowsAppWrapper *WindowsAppWrapper::windowsApp = nullptr;
+
+
+WindowsAppWrapper *WindowsAppWrapper::GetApp()
 {
     return windowsApp;
 }
 
 
-bool WindowsApp::Initialize()
+bool WindowsAppWrapper::Initialize()
 {
     if (!initialized)
     {
@@ -31,19 +36,11 @@ bool WindowsApp::Initialize()
             return false;
         }
 
-        // We will later allow the app to get a new renderer,
-        // but we default to D3D.
-        // Later perhaps we can create a pre-launch window,
-        // or remember the user's setting in subsequent launching.
-        renderer = new D3DRenderer(hWnd, windowWidth, windowHeight);
+        // default to dx12rhi. Later serialize user preference and instantiate that.
+        gfxRHI = new DX12RHI(hWnd, windowWidth, windowHeight);
+        gfxRHI->Initialize();
 
-        if (!renderer->Initialize())
-        {
-            return false;
-        }
-
-        app = new MainApp(this);
-
+        app = new App(this);
 
         initialized = true;
     }
@@ -52,7 +49,7 @@ bool WindowsApp::Initialize()
 }
 
 
-bool WindowsApp::InitializeWindow()
+bool WindowsAppWrapper::InitializeWindow()
 {
     const WCHAR* wndClassName = L"DjinnRendererWindow";
     const WCHAR* wndTitle = L"Djinn Renderer";
@@ -104,7 +101,7 @@ bool WindowsApp::InitializeWindow()
 }
 
 
-int WindowsApp::Run()
+int WindowsAppWrapper::Run()
 {
     MSG msg = { 0 };
     timer.Reset();
@@ -137,31 +134,31 @@ int WindowsApp::Run()
 }
 
 
-Renderer *WindowsApp::GetRenderer()
+GfxRHI *WindowsAppWrapper::GetGfxRHI()
 {
-    return renderer;
+    return gfxRHI;
 }
 
 
-void WindowsApp::OnMouseDown(WPARAM wParam, int x, int y)
-{
-    
-}
-
-
-void WindowsApp::OnMouseUp(WPARAM wParam, int x, int y)
+void WindowsAppWrapper::OnMouseDown(WPARAM wParam, int x, int y)
 {
     
 }
 
 
-void WindowsApp::OnMouseMove(WPARAM wParam, int x, int y)
+void WindowsAppWrapper::OnMouseUp(WPARAM wParam, int x, int y)
 {
     
 }
 
 
-LRESULT WindowsApp::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+void WindowsAppWrapper::OnMouseMove(WPARAM wParam, int x, int y)
+{
+    
+}
+
+
+LRESULT WindowsAppWrapper::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     /* Handling the following messages:
      * ACTIVATE
@@ -193,7 +190,7 @@ LRESULT WindowsApp::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_SIZE:
         windowWidth  = LOWORD(lParam);
         windowHeight = HIWORD(lParam);
-        if (renderer != nullptr && renderer->initialized)
+        if (gfxRHI != nullptr && gfxRHI->IsInitialized())
         {
             if (wParam == SIZE_MINIMIZED)
             {
@@ -206,7 +203,7 @@ LRESULT WindowsApp::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 paused = false;
                 minimized = false;
                 maximized = true;
-                renderer->SetClientDimensions(windowWidth, windowHeight);
+                gfxRHI->SetClientDimensions(windowWidth, windowHeight);
             }
             else if (wParam == SIZE_RESTORED)
             {
@@ -223,7 +220,7 @@ LRESULT WindowsApp::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
                         paused = false;
                         maximized = false;
                     }
-                    renderer->SetClientDimensions(windowWidth, windowHeight);
+                    gfxRHI->SetClientDimensions(windowWidth, windowHeight);
                 }
             }
         }
@@ -237,9 +234,9 @@ LRESULT WindowsApp::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         paused = false;
         resizing = false;
         timer.Start();
-        if (renderer != nullptr)
+        if (gfxRHI != nullptr)
         {
-            renderer->SetClientDimensions(windowWidth, windowHeight);
+            gfxRHI->SetClientDimensions(windowWidth, windowHeight);
         }
         return 0;
     case WM_DESTROY:
@@ -272,9 +269,9 @@ LRESULT WindowsApp::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         else if (wParam == VK_F2)
         {
-            auto currentSampleLevel = static_cast<int>(renderer->GetMsaaSampleLevel());
+            auto currentSampleLevel = static_cast<int>(gfxRHI->GetMsaaSampleLevel());
             auto newSampleLevel     = static_cast<MSAA_SAMPLE_LEVEL>((currentSampleLevel + 1) % 3);
-            renderer->SetMsaaSampleLevel(newSampleLevel);
+            gfxRHI->SetMsaaSampleLevel(newSampleLevel);
         }
         return 0;
     }

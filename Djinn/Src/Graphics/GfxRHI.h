@@ -7,18 +7,16 @@ typedef enum MSAA_SAMPLE_LEVEL {
     MSAA_SAMPLE_LEVEL_8X = 2
 } MSAA_SAMPLE_LEVEL;
 
-class Renderer
+class GfxRHI
 {
 public:
-    Renderer() = default;
-    virtual ~Renderer() = default;
-
-
+    GfxRHI() = default;
+    virtual ~GfxRHI() = default;
     virtual bool Initialize() = 0;
     virtual MSAA_SAMPLE_LEVEL GetMsaaSampleLevel() = 0;
     virtual void SetMsaaSampleLevel(MSAA_SAMPLE_LEVEL newLevel) = 0;
     virtual void SetClientDimensions(int width, int height) = 0;
     virtual void Draw() = 0;
-    bool initialized = false;
+    virtual bool IsInitialized() = 0;
 };
 

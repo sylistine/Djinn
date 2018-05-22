@@ -13,90 +13,129 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\Rendering">
+    <Filter Include="Header Files\Windows">
+      <UniqueIdentifier>{905c9b35-3f10-43e3-ba10-444491db1030}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Windows">
+      <UniqueIdentifier>{5c068d50-8bf8-4f90-b3b9-7645954fc97c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Graphics">
       <UniqueIdentifier>{320e3adb-3340-4d21-92df-82366cb06685}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Rendering">
-      <UniqueIdentifier>{9e967cfd-05d0-48a3-928b-64663813fd89}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Rendering\DirectX">
+    <Filter Include="Header Files\Graphics\DirectX">
       <UniqueIdentifier>{43fdb626-660a-46d2-9a86-c11c4975f575}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Rendering\DirectX">
+    <Filter Include="Source Files\Graphics">
+      <UniqueIdentifier>{9e967cfd-05d0-48a3-928b-64663813fd89}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Graphics\DirectX">
       <UniqueIdentifier>{8f6970a8-0201-404e-9e5c-d6579ff35d58}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Src\Timer.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Src\Windows\WindowsAppWrapper.h">
+      <Filter>Header Files\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Src\WindowsApp.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Src\Graphics\DirectX\d3dx12.h">
+      <Filter>Header Files\Graphics\DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Rendering\Renderer.h">
-      <Filter>Header Files\Rendering</Filter>
+    <ClInclude Include="Src\Graphics\DirectX\DX12RHI.h">
+      <Filter>Header Files\Graphics\DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="Src\stdinc.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Src\Graphics\DirectX\DxException.h">
+      <Filter>Header Files\Graphics\DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Rendering\Mesh.h">
-      <Filter>Header Files\Rendering</Filter>
+    <ClInclude Include="Src\Graphics\GfxDevice.h">
+      <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Math.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Src\Graphics\GfxRHI.h">
+      <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Src\InputManager.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Src\Graphics\Graphics.h">
+      <Filter>Header Files\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Src\MainApp.h">
+    <ClInclude Include="Src\Graphics\Mesh.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Graphics\MeshRenderer.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Graphics\SwapChain.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\App.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\AppWrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Rendering\DirectX\d3dx12.h">
-      <Filter>Header Files\Rendering\DirectX</Filter>
+    <ClInclude Include="Src\Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\InputManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Math.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\Scene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Rendering\DirectX\D3DRenderer.h">
-      <Filter>Header Files\Rendering\DirectX</Filter>
+    <ClInclude Include="Src\stdinc.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Rendering\DirectX\DxException.h">
-      <Filter>Header Files\Rendering\DirectX</Filter>
+    <ClInclude Include="Src\Timer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Transform.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Windows\WindowsAppWrapper.cpp">
+      <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Graphics\DirectX\DxException.cpp">
+      <Filter>Source Files\Graphics\DirectX</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Graphics\DirectX\DX12RHI.cpp">
+      <Filter>Source Files\Graphics\DirectX</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Graphics\GfxDevice.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Graphics\Graphics.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Graphics\Mesh.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Graphics\SwapChain.cpp">
+      <Filter>Source Files\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\App.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Math.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Scene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\Timer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\WindowsApp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Rendering\Mesh.cpp">
-      <Filter>Source Files\Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Math.cpp">
+    <ClCompile Include="Src\Transform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\InputManager.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\MainApp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Rendering\DirectX\D3DRenderer.cpp">
-      <Filter>Source Files\Rendering\DirectX</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Scene.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Rendering\DirectX\DxException.cpp">
-      <Filter>Source Files\Rendering\DirectX</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

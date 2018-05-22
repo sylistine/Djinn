@@ -12,7 +12,7 @@
 
 #include "d3dx12.h"
 
-#include "../Renderer.h"
+#include "../GfxRHI.h"
 
 
 #pragma comment(lib,"d3dcompiler.lib")
@@ -23,21 +23,22 @@
 using namespace Microsoft::WRL;
 
 
-class D3DRenderer : public Renderer
+class DX12RHI : public GfxRHI
 {
 public:
     // ~tors
-    D3DRenderer(HWND hWnd, int width, int height);
-    ~D3DRenderer() override;
+    DX12RHI(HWND hWnd, int width, int height);
+    ~DX12RHI() override;
 private:
-    D3DRenderer(const D3DRenderer& other);
+    DX12RHI(const DX12RHI& other);
 
 public:
     MSAA_SAMPLE_LEVEL GetMsaaSampleLevel()override;
+    bool IsInitialized()override;
     void SetMsaaSampleLevel(MSAA_SAMPLE_LEVEL newLevel)override;
     void SetClientDimensions(int width, int height)override;
 private:
-    ID3D12Resource *CurrentBackBuffer()const;
+    ID3D12Resource * CurrentBackBuffer()const;
     D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
     D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView()const;
 
@@ -45,7 +46,7 @@ private:
     HWND hWnd;
     int clientWidth;
     int clientHeight;
-
+    bool initialized = false;
     ComPtr<IDXGIFactory4> dxgiFactory;
     ComPtr<ID3D12Device> device;
     ComPtr<ID3D12Fence> fence;

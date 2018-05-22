@@ -1,4 +1,6 @@
-#include "WindowsApp.h"
+#include "Windows/WindowsAppWrapper.h"
+
+using namespace Djinn;
 
 int WINAPI WinMain(
     HINSTANCE hInstance,
@@ -6,7 +8,7 @@ int WINAPI WinMain(
     LPSTR cmdLIne,
     int cmdShow)
 {
-    WindowsApp app(hInstance);
+    WindowsAppWrapper app(hInstance);
     if (!app.Initialize())
     {
         return -1;

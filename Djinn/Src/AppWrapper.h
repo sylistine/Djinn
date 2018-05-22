@@ -1,12 +1,13 @@
 #pragma once
 
-#include "Rendering/Renderer.h"
+#include "Graphics/GfxRHI.h"
 
-class AppWrapper
-{
-public:
-    AppWrapper() = default;
-    virtual ~AppWrapper() = default;
-    virtual Renderer *GetRenderer() = 0;
-};
-
+namespace Djinn {
+    class AppWrapper
+    {
+    public:
+        AppWrapper() = default;
+        virtual ~AppWrapper() = default;
+        virtual GfxRHI *GetGfxRHI() = 0;
+    };
+}

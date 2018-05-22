@@ -2,14 +2,23 @@
 
 #include "stdinc.h"
 
-#include "Rendering/Mesh.h"
+#include <vector>
 
-class Scene
-{
-public:
-    Scene();
-    ~Scene();
-    void Initialize();
-private:
-    Mesh cube;
-};
+#include "Graphics/Mesh.h"
+#include "Camera.h"
+#include "Graphics/MeshRenderer.h"
+
+namespace Djinn {
+    class Scene
+    {
+    public:
+        Scene();
+        Scene(const Scene& other);
+        ~Scene();
+        void Initialize();
+        std::vector<Camera *> GetCurrentCameras();
+    private:
+        Mesh cube;
+        std::vector<Camera *> cameras;
+    };
+}
