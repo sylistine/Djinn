@@ -9,6 +9,8 @@
 #include "Graphics/MeshRenderer.h"
 
 namespace Djinn {
+    class Camera;
+
     class Scene
     {
     public:
@@ -16,9 +18,12 @@ namespace Djinn {
         Scene(const Scene& other);
         ~Scene();
         void Initialize();
-        std::vector<Camera *> GetCurrentCameras();
+        std::vector<Camera *> GetCameras();
+        std::vector<Mesh *> GetStaticGeo();
+        std::vector<Mesh *> GetNonStaticGeo();
     private:
-        Mesh cube;
         std::vector<Camera *> cameras;
+        std::vector<Mesh *> staticGeo;
+        std::vector<Mesh *> nonStaticGeo;
     };
 }

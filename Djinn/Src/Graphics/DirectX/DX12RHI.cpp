@@ -2,9 +2,18 @@
 
 #include "DxException.h"
 
+#include "../../Timer.h"
 
-DX12RHI::DX12RHI(HWND hWnd, int width, int height) :
-    hWnd(hWnd), clientWidth(width), clientHeight(height), screenViewport(), scissorRect() { }
+using namespace Djinn;
+using namespace Microsoft::WRL;
+
+DX12RHI::DX12RHI(HWND hWnd, int width, int height)
+    : hWnd(hWnd)
+    , clientWidth(width)
+    , clientHeight(height)
+    , screenViewport()
+    , scissorRect()
+{ }
 
 
 DX12RHI::~DX12RHI()
@@ -48,7 +57,7 @@ void DX12RHI::SetClientDimensions(int width, int height)
 
 ID3D12Resource *DX12RHI::CurrentBackBuffer()const
 {
-    return swapChainBuffer[currentBackBuffer].Get();
+    return swapChainTexture[currentBackBuffer].Get();
 }
 
 
@@ -56,7 +65,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE DX12RHI::CurrentBackBufferView()const
 {
     D3D12_CPU_DESCRIPTOR_HANDLE handle;
     handle.ptr = rtvHeap->GetCPUDescriptorHandleForHeapStart().ptr +
-        currentBackBuffer * rtvDescriptorSize;
+        currentBackBuffer * rtDescriptorSize;
     return handle;
 }
 
@@ -80,7 +89,12 @@ bool DX12RHI::Initialize()
     // dxgiFactory, virtual device, and fence
     ThrowIfFailed(FINFO, CreateDXGIFactory1(IID_PPV_ARGS(&dxgiFactory)));
 
-    auto hresult = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device));
+    auto hresult = D3D12CreateDevice(
+        nullptr,
+        D3D_FEATURE_LEVEL_11_0,
+        IID_PPV_ARGS(&device)
+    );
+
     if (FAILED(hresult))
     {
         ComPtr<IDXGIAdapter> warpAdapter;
@@ -91,38 +105,26 @@ bool DX12RHI::Initialize()
             D3D_FEATURE_LEVEL_11_0,
             IID_PPV_ARGS(&device)));
     }
+
 #if _DEBUG
     LogAdapters();
 #endif
 
-    ThrowIfFailed(FINFO, device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)));
+    ThrowIfFailed(FINFO, device->CreateFence(
+        0,
+        D3D12_FENCE_FLAG_NONE,
+        IID_PPV_ARGS(&fence)
+    ));
 
-    // Update MSAA info.
-    D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
-    msQualityLevels.Format = backBufferFormat;
-    msQualityLevels.SampleCount = 4;
-    msQualityLevels.Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE;
-    msQualityLevels.NumQualityLevels = 0;
-    ThrowIfFailed(FINFO, device->CheckFeatureSupport(
-        D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
-        &msQualityLevels, sizeof msQualityLevels));
-    msaa4xMaxQuality = msQualityLevels.NumQualityLevels - 1;
-    msQualityLevels.SampleCount = 8;
-    ThrowIfFailed(FINFO, device->CheckFeatureSupport(
-        D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
-        &msQualityLevels, sizeof msQualityLevels));
-    msaa8xMaxQuality = msQualityLevels.NumQualityLevels - 1;
+    UpdateMSAASupport();
 
     CreateCommandObjects();
-
     CreateSwapChain();
 
-    rtvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    dsvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-    cbvSrvUavDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     CreateRtvAndDsvDescriptorHeaps();
 
-    // Run this code once after initialization.
+    SetupPipeline();
+
     OnResize();
 
     initialized = true;
@@ -130,23 +132,32 @@ bool DX12RHI::Initialize()
 }
 
 
-/// The fun stuff! Finally!
-void DX12RHI::Draw()
+/// The fun stuff!
+void DX12RHI::PrepareMainCommandBuffer()
 {
-    ThrowIfFailed(FINFO, directCommandListAlloc->Reset());
+    // Getting the clearcolor.
+    // This is just for fun and won't live here much longer.
+    static float hue = 0.f;
+    float speed = 10.f; // h increment per second.
+    float r, g, b;
+    Color::Hsv2Rgb(hue, 1.f, 1.f, r, g, b);
+    float clearColor[4] = { r, g, b, 1.0f };
+    hue += speed * Timer::GetTimer()->DeltaTime();
+    hue = fmod(hue, 360.f);
 
-    ThrowIfFailed(FINFO, commandList->Reset(directCommandListAlloc.Get(), nullptr));
+    ThrowIfFailed(FINFO, directCommandAllocator->Reset());
+
+    ThrowIfFailed(FINFO, commandList->Reset(directCommandAllocator.Get(), nullptr));
 
     commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
         D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
     commandList->RSSetViewports(1, &screenViewport);
     commandList->RSSetScissorRects(1, &scissorRect);
-
     // Clear to black, baby.
     commandList->ClearRenderTargetView(
         CurrentBackBufferView(),
-        DirectX::Colors::Black,
+        clearColor,
         0, nullptr);
     commandList->ClearDepthStencilView(
         DepthStencilView(),
@@ -161,7 +172,7 @@ void DX12RHI::Draw()
     ThrowIfFailed(FINFO, commandList->Close());
 
     ID3D12CommandList *commandLists[] = { commandList.Get() };
-    commandQueue->ExecuteCommandLists(_countof(commandLists), commandLists);
+    commandQueue->ExecuteCommandLists(1, commandLists);
 
     ThrowIfFailed(FINFO, swapChain->Present(0, 0));
     currentBackBuffer = (currentBackBuffer + 1) % swapChainBufferCount;
@@ -173,12 +184,14 @@ void DX12RHI::Draw()
 void DX12RHI::OnResize()
 {
     FlushCommandQueue();
-    ThrowIfFailed(FINFO, commandList->Reset(directCommandListAlloc.Get(), nullptr));
-    for (auto& i : swapChainBuffer)
+
+    // Reset com ptrs.
+    ThrowIfFailed(FINFO, commandList->Reset(directCommandAllocator.Get(), nullptr));
+    for (auto& i : swapChainTexture)
     {
         i.Reset();
     }
-    depthStencilBuffer.Reset();
+    depthStencilTexture.Reset();
 
     ThrowIfFailed(FINFO, swapChain->ResizeBuffers(
         swapChainBufferCount,
@@ -192,15 +205,26 @@ void DX12RHI::OnResize()
     auto rtvHeapHandle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
     for (UINT i = 0; i < swapChainBufferCount; ++i)
     {
-        ThrowIfFailed(FINFO, swapChain->GetBuffer(i, IID_PPV_ARGS(&swapChainBuffer[i])));
+        ThrowIfFailed(FINFO, swapChain->GetBuffer(
+            i,
+            IID_PPV_ARGS(&swapChainTexture[i])
+        ));
+        
         device->CreateRenderTargetView(
-            swapChainBuffer[i].Get(),
+            swapChainTexture[i].Get(),
             nullptr,
             rtvHeapHandle);
-        rtvHeapHandle.ptr += rtvDescriptorSize;
+        rtvHeapHandle.ptr += rtDescriptorSize;
     }
 
     // Build depth stencil view
+    D3D12_HEAP_PROPERTIES depthStencilHeapProperties;
+    depthStencilHeapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
+    depthStencilHeapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    depthStencilHeapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+    depthStencilHeapProperties.CreationNodeMask = 1;
+    depthStencilHeapProperties.VisibleNodeMask = 1;
+
     D3D12_RESOURCE_DESC depthStencilDesc;
     depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
     depthStencilDesc.Alignment = 0;
@@ -218,38 +242,38 @@ void DX12RHI::OnResize()
     optClear.DepthStencil.Depth = 1.0f;
     optClear.DepthStencil.Stencil = 0;
 
-    D3D12_HEAP_PROPERTIES depthStencilHeapProperties;
-    depthStencilHeapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
-    depthStencilHeapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-    depthStencilHeapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-    depthStencilHeapProperties.CreationNodeMask = 1;
-    depthStencilHeapProperties.VisibleNodeMask = 1;
-
     ThrowIfFailed(FINFO, device->CreateCommittedResource(
         &depthStencilHeapProperties,
         D3D12_HEAP_FLAG_NONE,
         &depthStencilDesc,
         D3D12_RESOURCE_STATE_COMMON,
         &optClear,
-        IID_PPV_ARGS(depthStencilBuffer.GetAddressOf())
+        IID_PPV_ARGS(depthStencilTexture.GetAddressOf())
     ));
 
-    D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
-    dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
-    dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-    dsvDesc.Format = depthStencilFormat;
-    dsvDesc.Texture2D.MipSlice = 0;
+    D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilDescriptor;
+    depthStencilDescriptor.Flags = D3D12_DSV_FLAG_NONE;
+    depthStencilDescriptor.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+    depthStencilDescriptor.Format = depthStencilFormat;
+    depthStencilDescriptor.Texture2D.MipSlice = 0;
     device->CreateDepthStencilView(
-        depthStencilBuffer.Get(),
-        &dsvDesc,
-        dsvHeap->GetCPUDescriptorHandleForHeapStart());
+        depthStencilTexture.Get(),
+        &depthStencilDescriptor,
+        dsvHeap->GetCPUDescriptorHandleForHeapStart()
+    );
 
-    commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(depthStencilBuffer.Get(),
-        D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+    commandList->ResourceBarrier(
+        1,
+        &CD3DX12_RESOURCE_BARRIER::Transition(
+            depthStencilTexture.Get(),
+            D3D12_RESOURCE_STATE_COMMON,
+            D3D12_RESOURCE_STATE_DEPTH_WRITE
+        )
+    );
 
     ThrowIfFailed(FINFO, commandList->Close());
     ID3D12CommandList *commandLists[] = { commandList.Get() };
-    commandQueue->ExecuteCommandLists(_countof(commandLists), commandLists);
+    commandQueue->ExecuteCommandLists(1, commandLists);
 
     FlushCommandQueue();
 
@@ -282,25 +306,47 @@ void DX12RHI::FlushCommandQueue()
 }
 
 
+void DX12RHI::UpdateMSAASupport()
+{
+    D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
+    msQualityLevels.Format = backBufferFormat;
+    msQualityLevels.SampleCount = 4;
+    msQualityLevels.Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE;
+    msQualityLevels.NumQualityLevels = 0;
+    ThrowIfFailed(FINFO, device->CheckFeatureSupport(
+        D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
+        &msQualityLevels, sizeof msQualityLevels));
+    msaa4xMaxQuality = msQualityLevels.NumQualityLevels - 1;
+    msQualityLevels.SampleCount = 8;
+    ThrowIfFailed(FINFO, device->CheckFeatureSupport(
+        D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
+        &msQualityLevels, sizeof msQualityLevels));
+    msaa8xMaxQuality = msQualityLevels.NumQualityLevels - 1;
+}
+
+
 bool DX12RHI::CreateCommandObjects()
 {
     D3D12_COMMAND_QUEUE_DESC queueDesc = {};
     queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
     queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-    ThrowIfFailed(FINFO, device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue)));
+    ThrowIfFailed(FINFO, device->CreateCommandQueue(
+        &queueDesc,
+        IID_PPV_ARGS(&commandQueue)
+    ));
 
     ThrowIfFailed(FINFO, device->CreateCommandAllocator(
         D3D12_COMMAND_LIST_TYPE_DIRECT,
-        IID_PPV_ARGS(directCommandListAlloc.GetAddressOf()))
-    );
+        IID_PPV_ARGS(directCommandAllocator.GetAddressOf())
+    ));
 
     ThrowIfFailed(FINFO, device->CreateCommandList(
         0,
         D3D12_COMMAND_LIST_TYPE_DIRECT,
-        directCommandListAlloc.Get(),
+        directCommandAllocator.Get(),
         nullptr,
-        IID_PPV_ARGS(commandList.GetAddressOf()))
-    );
+        IID_PPV_ARGS(commandList.GetAddressOf())
+    ));
 
     commandList->Close();
 
@@ -366,23 +412,71 @@ void DX12RHI::CreateSwapChain()
 
 void DX12RHI::CreateRtvAndDsvDescriptorHeaps()
 {
+    rtDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
     rtvHeapDesc.NumDescriptors = swapChainBufferCount;
     rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
     rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
     rtvHeapDesc.NodeMask = 0;
     ThrowIfFailed(FINFO, device->CreateDescriptorHeap(
-        &rtvHeapDesc, IID_PPV_ARGS(rtvHeap.GetAddressOf()))
-    );
+        &rtvHeapDesc,
+        IID_PPV_ARGS(rtvHeap.GetAddressOf())
+    ));
 
-    D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc;
-    dsvHeapDesc.NumDescriptors = 1;
-    dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-    dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-    dsvHeapDesc.NodeMask = 0;
+    dsDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+    D3D12_DESCRIPTOR_HEAP_DESC dsHeapDesc;
+    dsHeapDesc.NumDescriptors = 1;
+    dsHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+    dsHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+    dsHeapDesc.NodeMask = 0;
     ThrowIfFailed(FINFO, device->CreateDescriptorHeap(
-        &dsvHeapDesc, IID_PPV_ARGS(dsvHeap.GetAddressOf()))
-    );
+        &dsHeapDesc,
+        IID_PPV_ARGS(dsvHeap.GetAddressOf())
+    ));
+
+    cbvSrvUavDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+}
+
+
+void DX12RHI::SetupPipeline() {
+    D3D12_INPUT_ELEMENT_DESC vertexDesc[] =
+    {
+        {
+            "POSITION", 0,
+            DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
+            D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
+        },
+        {
+            "COLOR", 0,
+            DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
+            D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
+        }
+    };
+
+    ComPtr<ID3D12Resource> staticVertexBuffer;
+    ThrowIfFailed(FINFO, device->CreateCommittedResource(
+        &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+        D3D12_HEAP_FLAG_NONE,
+        &CD3DX12_RESOURCE_DESC::Buffer(24),
+        D3D12_RESOURCE_STATE_COMMON,
+        nullptr,
+        IID_PPV_ARGS(staticVertexBuffer.GetAddressOf())
+    ));
+    ComPtr<ID3D12Resource> staticVertexUploadBuffer;
+    ThrowIfFailed(FINFO, device->CreateCommittedResource(
+        &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+        D3D12_HEAP_FLAG_NONE,
+        &CD3DX12_RESOURCE_DESC::Buffer(24),
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(staticVertexUploadBuffer.GetAddressOf())
+    ));
+
+    D3D12_SUBRESOURCE_DATA subresourceData = {};
+    subresourceData.pData = nullptr;
+    subresourceData.RowPitch = 24;
+    subresourceData.SlicePitch = 24;
+
 }
 
 

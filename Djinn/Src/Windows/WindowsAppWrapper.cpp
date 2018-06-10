@@ -8,7 +8,7 @@ LRESULT WINAPI MainWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 
-WindowsAppWrapper::WindowsAppWrapper(HINSTANCE hInstance) : hInstance(hInstance)
+WindowsAppWrapper::WindowsAppWrapper(HINSTANCE hInstance) : AppWrapper(), hInstance(hInstance)
 {
     assert(windowsApp == nullptr);
     windowsApp = this;
@@ -41,6 +41,7 @@ bool WindowsAppWrapper::Initialize()
         gfxRHI->Initialize();
 
         app = new App(this);
+        app->Start();
 
         initialized = true;
     }
@@ -104,7 +105,7 @@ bool WindowsAppWrapper::InitializeWindow()
 int WindowsAppWrapper::Run()
 {
     MSG msg = { 0 };
-    timer.Reset();
+    Timer::GetTimer()->Reset();
 
     while (msg.message != WM_QUIT)
     {
@@ -115,10 +116,10 @@ int WindowsAppWrapper::Run()
         }
         else
         {
-            timer.Tick();
+            Timer::GetTimer()->Tick();
             if (!paused)
             {
-                timer.UpdateFrameStats();
+                Timer::GetTimer()->UpdateFrameStats();
 
                 // TODO: Update and Draw should be left up to a platform agnostic Game or App class.
                 app->Update();
@@ -179,11 +180,11 @@ LRESULT WindowsAppWrapper::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
     case WM_ACTIVATE:
         if (LOWORD(wParam) == WA_INACTIVE)
         {
-            timer.Stop();
+            Timer::GetTimer()->Stop();
             paused = true;
         } else
         {
-            timer.Start();
+            Timer::GetTimer()->Start();
             paused = false;
         }
         return 0;
@@ -228,12 +229,12 @@ LRESULT WindowsAppWrapper::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
     case WM_ENTERSIZEMOVE:
         paused = true;
         resizing = true;
-        timer.Stop();
+        Timer::GetTimer()->Stop();
         return 0;
     case WM_EXITSIZEMOVE:
         paused = false;
         resizing = false;
-        timer.Start();
+        Timer::GetTimer()->Start();
         if (gfxRHI != nullptr)
         {
             gfxRHI->SetClientDimensions(windowWidth, windowHeight);

@@ -1,6 +1,7 @@
 #include "Mesh.h"
 
 using namespace DirectX;
+using namespace Djinn;
 
 Mesh::Mesh()
 {

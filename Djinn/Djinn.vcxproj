@@ -22,6 +22,7 @@
     <ClInclude Include="Src\App.h" />
     <ClInclude Include="Src\AppWrapper.h" />
     <ClInclude Include="Src\Camera.h" />
+    <ClInclude Include="Src\Color.h" />
     <ClInclude Include="Src\Graphics\DirectX\d3dx12.h" />
     <ClInclude Include="Src\Graphics\DirectX\DX12RHI.h" />
     <ClInclude Include="Src\Graphics\DirectX\DxException.h" />
@@ -42,6 +43,7 @@
   <ItemGroup>
     <ClCompile Include="Src\App.cpp" />
     <ClCompile Include="Src\Camera.cpp" />
+    <ClCompile Include="Src\Color.cpp" />
     <ClCompile Include="Src\Graphics\DirectX\DX12RHI.cpp" />
     <ClCompile Include="Src\Graphics\DirectX\DxException.cpp" />
     <ClCompile Include="Src\Graphics\GfxDevice.cpp" />

@@ -12,8 +12,9 @@ namespace Djinn {
         void Start();
         void Update();
     private:
-        App(const App& other);
+        App(const App&);
         AppWrapper *appWrapper;
-        Graphics *graphics;
+        Graphics graphics;
+        Scene defaultScene;
     };
 }

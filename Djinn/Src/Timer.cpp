@@ -5,6 +5,13 @@
 #include <windows.h>
 #include "Timer.h"
 
+Timer *Timer::GetTimer()
+{
+    return &s_timer;
+}
+
+Timer Timer::s_timer;
+
 Timer::Timer() :
     secondsPerCount(0.0),
     deltaTime(-1.0),

@@ -25,29 +25,24 @@ void Graphics::SetCurrentScene(Scene *currentScene)
 
 void Graphics::Update()
 {
-    // Basically short circuiting the logic here because we haven't updated
-    // the gfxRHI to provide an interface for this controller to create command buffs
-    // or upload verts and textures.
-    gfxRHI->Draw();
-
-    // Dummy call, for future implementation.
-    //UpdateNonStaticGeo();
+    gfxRHI->PrepareMainCommandBuffer();
+    UpdateNonStaticGeo();
 }
 
 
-/// Sets up both static and non-static geomtry.
+/// Uploads all geometry in the scene to a VBO.
 void Graphics::SetupGeo()
 {
-    for (auto& camera : scene->GetCurrentCameras())
+    for (auto& camera : scene->GetCameras())
     {
-        
+        auto renderableGeo = camera->GetRenderableGeo();
     }
 }
 
 void Graphics::UpdateNonStaticGeo()
 {
-    for (auto& camera : scene->GetCurrentCameras())
+    for (auto& camera : scene->GetCameras())
     {
-
+        // Update moving geo.
     }
 }

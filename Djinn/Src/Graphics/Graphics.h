@@ -2,6 +2,8 @@
 
 #include "GfxRHI.h"
 #include "Mesh.h"
+#include "../Color.h"
+#include "../Timer.h"
 #include "../Scene.h"
 
 namespace Djinn {
@@ -13,6 +15,7 @@ namespace Djinn {
         void Update();
     private:
         GfxRHI *gfxRHI;
+        CommandBuffer *commandBuffer;
         Scene *scene;
         void SetupGeo();
         void UpdateNonStaticGeo();

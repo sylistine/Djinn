@@ -7,6 +7,8 @@ using namespace DirectX;
 
 namespace Djinn
 {
+    /// Includes missing extensions to existing classes.
+    /// For somewhat non-mathematical math utilities, see MathUtil.h
     class Math
     {
         // cmath extensions.

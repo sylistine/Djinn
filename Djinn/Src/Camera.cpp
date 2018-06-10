@@ -1,21 +1,33 @@
 #include "Camera.h"
 
+using namespace std;
 using namespace Djinn;
 
-Camera::Camera()
+Camera::Camera(Scene *parentScene) : parentScene(parentScene)
 {
 
 }
 
 
+/// Private.
 Camera::Camera(const Camera& other)
 {
-    // cctor is private.
-    // Don't support copy yet.
 }
 
 
 Camera::~Camera()
 {
 
+}
+
+
+vector<Mesh *> Camera::GetRenderableGeo()
+{
+    vector<Mesh *> renderableGeo;
+    for (auto mesh : parentScene->GetStaticGeo())
+    {
+        // TODO: filter results
+        renderableGeo.push_back(mesh);
+    }
+    return renderableGeo;
 }

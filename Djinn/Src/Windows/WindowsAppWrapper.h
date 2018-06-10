@@ -31,7 +31,6 @@ namespace Djinn {
         // Windows parameters.
         HINSTANCE hInstance;
         HWND hWnd;
-        Timer timer;
         GfxRHI *gfxRHI;
         App *app;
         int windowWidth = 800;

@@ -7,7 +7,10 @@ using namespace std;
 class Timer
 {
 public:
-    Timer();
+    static Timer *GetTimer();
+private:
+    static Timer s_timer;
+public:
     float TotalTime()const;
     float DeltaTime()const;
     void Reset();
@@ -19,6 +22,7 @@ public:
     float Fps() const;
     float Mspf() const;
 private:
+    Timer();
     double secondsPerCount;
     double deltaTime;
     __int64 baseTime;
