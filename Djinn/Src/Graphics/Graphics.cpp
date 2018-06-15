@@ -5,7 +5,7 @@ using namespace Djinn;
 Graphics::Graphics(GfxRHI *gfxRHI)
     : gfxRHI(gfxRHI)
 {
-
+    commandBuffer = gfxRHI->GetCommandBuffer();
 }
 
 
@@ -25,16 +25,16 @@ void Graphics::SetCurrentScene(Scene *currentScene)
 
 void Graphics::Update()
 {
-    gfxRHI->PrepareMainCommandBuffer();
     UpdateNonStaticGeo();
+    commandBuffer->Draw();
 }
 
 
-/// Uploads all geometry in the scene to a VBO.
 void Graphics::SetupGeo()
 {
     for (auto& camera : scene->GetCameras())
     {
+        // Prepare swap chain and command buffers for each extra camera.
         auto renderableGeo = camera->GetRenderableGeo();
     }
 }

@@ -31,6 +31,9 @@
     <Filter Include="Source Files\Graphics\DirectX">
       <UniqueIdentifier>{8f6970a8-0201-404e-9e5c-d6579ff35d58}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Graphics\Shaders">
+      <UniqueIdentifier>{04cfb4bc-fbeb-41c6-89d3-0ba4b30587e2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Windows\WindowsAppWrapper.h">
@@ -45,9 +48,6 @@
     <ClInclude Include="Src\Graphics\DirectX\DxException.h">
       <Filter>Header Files\Graphics\DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Graphics\GfxDevice.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Graphics\GfxRHI.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
@@ -58,9 +58,6 @@
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Src\Graphics\MeshRenderer.h">
-      <Filter>Header Files\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Graphics\SwapChain.h">
       <Filter>Header Files\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Src\App.h">
@@ -93,6 +90,12 @@
     <ClInclude Include="Src\Color.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Graphics\CommandBuffer.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Graphics\DirectX\DX12CommandBuffer.h">
+      <Filter>Header Files\Graphics\DirectX</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Windows\WindowsAppWrapper.cpp">
@@ -104,16 +107,10 @@
     <ClCompile Include="Src\Graphics\DirectX\DX12RHI.cpp">
       <Filter>Source Files\Graphics\DirectX</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Graphics\GfxDevice.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Graphics\Graphics.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Src\Graphics\Mesh.cpp">
-      <Filter>Source Files\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Graphics\SwapChain.cpp">
       <Filter>Source Files\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Src\App.cpp">
@@ -143,5 +140,16 @@
     <ClCompile Include="Src\Color.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Graphics\DirectX\DX12CommandBuffer.cpp">
+      <Filter>Source Files\Graphics\DirectX</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Src\Graphics\Shaders\SimpleFS.hlsl">
+      <Filter>Source Files\Graphics\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Src\Graphics\Shaders\SimpleVS.hlsl">
+      <Filter>Source Files\Graphics\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

@@ -13,15 +13,17 @@
 
 #include "../GfxRHI.h"
 
-#include "../../Color.h"
+#include "DX12CommandBuffer.h"
 
 
-#pragma comment(lib,"d3dcompiler.lib")
+#pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "D3D12.lib")
 
 
 namespace Djinn {
+    class DX12CommandBuffer;
+
     typedef struct vertex
     {
         DirectX::XMFLOAT3 position;
@@ -42,7 +44,6 @@ namespace Djinn {
         bool IsInitialized()override;
         void SetMsaaSampleLevel(MSAA_SAMPLE_LEVEL newLevel)override;
         void SetClientDimensions(int width, int height)override;
-    private:
         ID3D12Resource * CurrentBackBuffer()const;
         D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
         D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView()const;
@@ -64,7 +65,7 @@ namespace Djinn {
         DXGI_FORMAT backBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
         int currentBackBuffer = 0;
         Microsoft::WRL::ComPtr<IDXGISwapChain> swapChain;
-        Microsoft::WRL::ComPtr<ID3D12Resource> swapChainTexture[swapChainBufferCount];
+        Microsoft::WRL::ComPtr<ID3D12Resource> swapChainBuffer[swapChainBufferCount];
 
         Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue;
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator> directCommandAllocator;
@@ -81,17 +82,21 @@ namespace Djinn {
         D3D12_VIEWPORT screenViewport;
         D3D12_RECT scissorRect;
 
+        // TODO: This shouldn't live here... we need a controller to hold these...
+        std::vector<ID3D12CommandList *> commandLists;
     public:
         bool Initialize() override;
-        void PrepareMainCommandBuffer() override;
+        CommandBuffer *GetCommandBuffer() override;
+        void SubmitCommandList(ID3D12CommandList *commandList);
+        void ExecuteCommandLists();
+        void PresentAndFlip();
+        void FlushCommandQueue();
     private:
         void OnResize();
-        void FlushCommandQueue();
         void UpdateMSAASupport();
         bool CreateCommandObjects();
         void CreateSwapChain();
         void CreateRtvAndDsvDescriptorHeaps();
-        void SetupPipeline();
 
         inline DXGI_SAMPLE_DESC GetSampleDescriptor()const;
 

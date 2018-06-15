@@ -18,10 +18,12 @@ namespace Djinn {
         Scene(const Scene& other);
         ~Scene();
         void Initialize();
+        Camera *GetMainCamera();
         std::vector<Camera *> GetCameras();
         std::vector<Mesh *> GetStaticGeo();
         std::vector<Mesh *> GetNonStaticGeo();
     private:
+        Camera * mainCamera;
         std::vector<Camera *> cameras;
         std::vector<Mesh *> staticGeo;
         std::vector<Mesh *> nonStaticGeo;

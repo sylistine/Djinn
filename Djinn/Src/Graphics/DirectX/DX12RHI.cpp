@@ -2,8 +2,6 @@
 
 #include "DxException.h"
 
-#include "../../Timer.h"
-
 using namespace Djinn;
 using namespace Microsoft::WRL;
 
@@ -57,7 +55,7 @@ void DX12RHI::SetClientDimensions(int width, int height)
 
 ID3D12Resource *DX12RHI::CurrentBackBuffer()const
 {
-    return swapChainTexture[currentBackBuffer].Get();
+    return swapChainBuffer[currentBackBuffer].Get();
 }
 
 
@@ -123,61 +121,43 @@ bool DX12RHI::Initialize()
 
     CreateRtvAndDsvDescriptorHeaps();
 
-    SetupPipeline();
-
     OnResize();
 
     initialized = true;
     return true;
 }
 
-
-/// The fun stuff!
-void DX12RHI::PrepareMainCommandBuffer()
+CommandBuffer *DX12RHI::GetCommandBuffer()
 {
-    // Getting the clearcolor.
-    // This is just for fun and won't live here much longer.
-    static float hue = 0.f;
-    float speed = 10.f; // h increment per second.
-    float r, g, b;
-    Color::Hsv2Rgb(hue, 1.f, 1.f, r, g, b);
-    float clearColor[4] = { r, g, b, 1.0f };
-    hue += speed * Timer::GetTimer()->DeltaTime();
-    hue = fmod(hue, 360.f);
+    return new DX12CommandBuffer(this, device.Get());
+}
 
-    ThrowIfFailed(FINFO, directCommandAllocator->Reset());
 
-    ThrowIfFailed(FINFO, commandList->Reset(directCommandAllocator.Get(), nullptr));
+void DX12RHI::SubmitCommandList(ID3D12CommandList *commandList)
+{
+    commandLists.push_back(commandList);
+}
 
-    commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
-        D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
-    commandList->RSSetViewports(1, &screenViewport);
-    commandList->RSSetScissorRects(1, &scissorRect);
-    // Clear to black, baby.
-    commandList->ClearRenderTargetView(
-        CurrentBackBufferView(),
-        clearColor,
-        0, nullptr);
-    commandList->ClearDepthStencilView(
-        DepthStencilView(),
-        D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL,
-        1.0f, 0, 0, nullptr);
+void DX12RHI::ExecuteCommandLists()
+{
+    //ID3D12CommandList *commandLists[] = { commandList.Get() };
 
-    commandList->OMSetRenderTargets(1, &CurrentBackBufferView(), true, &DepthStencilView());
 
-    commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
-        D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+    ID3D12CommandList **commandListArray = new ID3D12CommandList*[commandLists.size()];
+    for (int i = 0; i < commandLists.size(); ++i)
+    {
+        commandListArray[i] = commandLists[i];
+    }
 
-    ThrowIfFailed(FINFO, commandList->Close());
+    commandQueue->ExecuteCommandLists(commandLists.size(), commandListArray);
+}
 
-    ID3D12CommandList *commandLists[] = { commandList.Get() };
-    commandQueue->ExecuteCommandLists(1, commandLists);
 
+void DX12RHI::PresentAndFlip()
+{
     ThrowIfFailed(FINFO, swapChain->Present(0, 0));
     currentBackBuffer = (currentBackBuffer + 1) % swapChainBufferCount;
-
-    FlushCommandQueue();
 }
 
 
@@ -187,7 +167,7 @@ void DX12RHI::OnResize()
 
     // Reset com ptrs.
     ThrowIfFailed(FINFO, commandList->Reset(directCommandAllocator.Get(), nullptr));
-    for (auto& i : swapChainTexture)
+    for (auto& i : swapChainBuffer)
     {
         i.Reset();
     }
@@ -207,11 +187,11 @@ void DX12RHI::OnResize()
     {
         ThrowIfFailed(FINFO, swapChain->GetBuffer(
             i,
-            IID_PPV_ARGS(&swapChainTexture[i])
+            IID_PPV_ARGS(&swapChainBuffer[i])
         ));
         
         device->CreateRenderTargetView(
-            swapChainTexture[i].Get(),
+            swapChainBuffer[i].Get(),
             nullptr,
             rtvHeapHandle);
         rtvHeapHandle.ptr += rtDescriptorSize;
@@ -325,6 +305,32 @@ void DX12RHI::UpdateMSAASupport()
 }
 
 
+inline DXGI_SAMPLE_DESC DX12RHI::GetSampleDescriptor()const
+{
+    UINT count;
+    UINT quality;
+    switch (msaaSampleLevel) {
+    case MSAA_SAMPLE_LEVEL_4X:
+        count = 4;
+        quality = msaa4xMaxQuality;
+        break;
+    case MSAA_SAMPLE_LEVEL_8X:
+        count = 8;
+        quality = msaa8xMaxQuality;
+        break;
+    default:
+        count = 1;
+        quality = 0;
+        break;
+    }
+
+    DXGI_SAMPLE_DESC sampleDesc;
+    sampleDesc.Count = count;
+    sampleDesc.Quality = quality;
+    return sampleDesc;
+}
+
+
 bool DX12RHI::CreateCommandObjects()
 {
     D3D12_COMMAND_QUEUE_DESC queueDesc = {};
@@ -351,32 +357,6 @@ bool DX12RHI::CreateCommandObjects()
     commandList->Close();
 
     return true;
-}
-
-
-inline DXGI_SAMPLE_DESC DX12RHI::GetSampleDescriptor()const
-{
-    UINT count;
-    UINT quality;
-    switch (msaaSampleLevel) {
-    case MSAA_SAMPLE_LEVEL_4X:
-        count = 4;
-        quality = msaa4xMaxQuality;
-        break;
-    case MSAA_SAMPLE_LEVEL_8X:
-        count = 8;
-        quality = msaa8xMaxQuality;
-        break;
-    default:
-        count = 1;
-        quality = 0;
-        break;
-    }
-
-    DXGI_SAMPLE_DESC sampleDesc;
-    sampleDesc.Count = count;
-    sampleDesc.Quality = quality;
-    return sampleDesc;
 }
 
 
@@ -435,48 +415,6 @@ void DX12RHI::CreateRtvAndDsvDescriptorHeaps()
     ));
 
     cbvSrvUavDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-}
-
-
-void DX12RHI::SetupPipeline() {
-    D3D12_INPUT_ELEMENT_DESC vertexDesc[] =
-    {
-        {
-            "POSITION", 0,
-            DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
-            D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
-        },
-        {
-            "COLOR", 0,
-            DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
-            D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
-        }
-    };
-
-    ComPtr<ID3D12Resource> staticVertexBuffer;
-    ThrowIfFailed(FINFO, device->CreateCommittedResource(
-        &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-        D3D12_HEAP_FLAG_NONE,
-        &CD3DX12_RESOURCE_DESC::Buffer(24),
-        D3D12_RESOURCE_STATE_COMMON,
-        nullptr,
-        IID_PPV_ARGS(staticVertexBuffer.GetAddressOf())
-    ));
-    ComPtr<ID3D12Resource> staticVertexUploadBuffer;
-    ThrowIfFailed(FINFO, device->CreateCommittedResource(
-        &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-        D3D12_HEAP_FLAG_NONE,
-        &CD3DX12_RESOURCE_DESC::Buffer(24),
-        D3D12_RESOURCE_STATE_GENERIC_READ,
-        nullptr,
-        IID_PPV_ARGS(staticVertexUploadBuffer.GetAddressOf())
-    ));
-
-    D3D12_SUBRESOURCE_DATA subresourceData = {};
-    subresourceData.pData = nullptr;
-    subresourceData.RowPitch = 24;
-    subresourceData.SlicePitch = 24;
-
 }
 
 
