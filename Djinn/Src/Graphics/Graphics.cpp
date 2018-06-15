@@ -17,8 +17,12 @@ Graphics::~Graphics()
 
 void Graphics::SetCurrentScene(Scene *currentScene)
 {
-    // cleanup old scene geomtry.
+    // TODO: cleanup old scene geomtry.
     scene = currentScene;
+
+    // NOTE: Not a fan of this notation (arrow, arrow, dot).
+    // Convert transform from copy to pointer?
+    scene->GetMainCamera()->transform.position;
     SetupGeo();
 }
 

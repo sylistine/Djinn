@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Scene.h"
+#include "Transform.h"
 
 namespace Djinn {
     class Scene;
@@ -12,6 +13,7 @@ namespace Djinn {
         Camera(Scene *parentScene);
         ~Camera();
         std::vector<Mesh *> GetRenderableGeo();
+        Transform transform;
     private:
         Scene * parentScene;
         Camera(const Camera& other);

@@ -3,10 +3,13 @@
 #include <wrl.h>
 
 #include <d3d12.h>
+#include <DirectXMath.h>
 #include "d3dx12.h"
 
 #include "DxException.h"
+
 #include "DX12RHI.h"
+#include "../../Math.h"
 #include "../CommandBuffer.h"
 
 namespace Djinn
@@ -15,6 +18,10 @@ namespace Djinn
     public:
         DX12CommandBuffer(DX12RHI *dx12rhi, ID3D12Device *device);
         ~DX12CommandBuffer() override;
+
+        void Initialize()override;
+        void Draw()override;
+
     private:
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator> directCommandListAlloc;
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList;
@@ -22,10 +29,10 @@ namespace Djinn
         ID3D12Device *device;
         D3D12_VIEWPORT screenViewport;
         D3D12_RECT scissorRect;
-    public:
-        void Initialize()override;
-        void Draw()override;
-    private:
+        DirectX::XMFLOAT4X4 worldMatrix = Math::Identity();
+        DirectX::XMFLOAT4X4 viewMatrix = Math::Identity();
+        DirectX::XMFLOAT4X4 projectionMatrix = Math::Identity();
+
         void BuildDescriptorHeaps();
         void BuildConstantBuffers();
         void BuildRootSignature();
