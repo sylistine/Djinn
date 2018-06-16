@@ -4,6 +4,7 @@
 #include "../../Timer.h"
 
 using namespace Djinn;
+using namespace DirectX;
 
 DX12CommandBuffer::DX12CommandBuffer(DX12RHI *dx12rhi, ID3D12Device *device)
     : dx12rhi(dx12rhi)
@@ -102,6 +103,17 @@ void DX12CommandBuffer::Draw()
     dx12rhi->ExecuteCommandLists();
     dx12rhi->PresentAndFlip();
     dx12rhi->FlushCommandQueue();
+}
+
+
+void DX12CommandBuffer::UpdateViewMatrix(Transform *cameraTransform)
+{
+    Vertex cameraPos = cameraTransform->position;
+    XMVECTOR pos = XMVectorSet(cameraPos.x, cameraPos.y, cameraPos.z, 1.0f);
+    XMVECTOR target = XMVectorZero();
+    XMVECTOR up = XMVectorSet(0.f, 1.f, 0.f, 0.f);
+    XMMATRIX view = Math::ViewMatrix(pos, target, up);
+    XMStoreFloat4x4(&viewMatrix, view);
 }
 
 

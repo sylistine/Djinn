@@ -96,6 +96,9 @@
     <ClInclude Include="Src\Graphics\DirectX\DX12CommandBuffer.h">
       <Filter>Header Files\Graphics\DirectX</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Vertex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Windows\WindowsAppWrapper.cpp">
@@ -143,13 +146,12 @@
     <ClCompile Include="Src\Graphics\DirectX\DX12CommandBuffer.cpp">
       <Filter>Source Files\Graphics\DirectX</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Vertex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Src\Graphics\Shaders\SimpleFS.hlsl">
-      <Filter>Source Files\Graphics\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Src\Graphics\Shaders\SimpleVS.hlsl">
-      <Filter>Source Files\Graphics\Shaders</Filter>
-    </FxCompile>
+    <None Include="Src\Graphics\Shaders\SimpleFS.hlsl" />
+    <None Include="Src\Graphics\Shaders\SimpleVS.hlsl" />
   </ItemGroup>
 </Project>

@@ -9,8 +9,8 @@
 #include "DxException.h"
 
 #include "DX12RHI.h"
-#include "../../Math.h"
 #include "../CommandBuffer.h"
+#include "../../Math.h"
 
 namespace Djinn
 {
@@ -21,7 +21,7 @@ namespace Djinn
 
         void Initialize()override;
         void Draw()override;
-
+        void UpdateViewMatrix(Transform *cameraTransform)override;
     private:
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator> directCommandListAlloc;
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList;

@@ -31,3 +31,9 @@ vector<Mesh *> Camera::GetRenderableGeo()
     }
     return renderableGeo;
 }
+
+
+Transform *Camera::GetTransform()
+{
+    return &transform;
+}

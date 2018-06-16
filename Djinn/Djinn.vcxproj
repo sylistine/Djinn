@@ -38,6 +38,7 @@
     <ClInclude Include="Src\stdinc.h" />
     <ClInclude Include="Src\Timer.h" />
     <ClInclude Include="Src\Transform.h" />
+    <ClInclude Include="Src\Vertex.h" />
     <ClInclude Include="Src\Windows\WindowsAppWrapper.h" />
   </ItemGroup>
   <ItemGroup>
@@ -55,6 +56,7 @@
     <ClCompile Include="Src\Scene.cpp" />
     <ClCompile Include="Src\Timer.cpp" />
     <ClCompile Include="Src\Transform.cpp" />
+    <ClCompile Include="Src\Vertex.cpp" />
     <ClCompile Include="Src\Windows\WindowsAppWrapper.cpp" />
   </ItemGroup>
   <ItemGroup>

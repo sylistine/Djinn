@@ -20,9 +20,6 @@ void Graphics::SetCurrentScene(Scene *currentScene)
     // TODO: cleanup old scene geomtry.
     scene = currentScene;
 
-    // NOTE: Not a fan of this notation (arrow, arrow, dot).
-    // Convert transform from copy to pointer?
-    scene->GetMainCamera()->transform.position;
     SetupGeo();
 }
 
@@ -30,6 +27,8 @@ void Graphics::SetCurrentScene(Scene *currentScene)
 void Graphics::Update()
 {
     UpdateNonStaticGeo();
+
+    commandBuffer->UpdateViewMatrix(scene->GetMainCamera()->GetTransform());
     commandBuffer->Draw();
 }
 

@@ -7,7 +7,7 @@ Vertex::Vertex()
 
 }
 
-Vertex::Vertex(float x, float y, float z, float w = 0)
+Vertex::Vertex(float x, float y, float z, float w)
     : x(x)
     , y(y)
     , z(z)

@@ -4,10 +4,6 @@
 #include <DirectXMath.h>
 
 namespace Djinn {
-    typedef struct Vertex {
-
-    } Vertex;
-
     class Mesh
     {
     public:

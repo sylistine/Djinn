@@ -1,30 +1,33 @@
 #include "Math.h"
 
+using namespace Djinn;
+using namespace DirectX;
+
 // cmath extensions
-inline float Djinn::Math::cot(const float& theta)
+inline float Math::cot(const float& theta)
 {
     return tan(XM_PIDIV2 - theta);
 }
 
-inline float Djinn::Math::oneOver(const float& a)
+inline float Math::oneOver(const float& a)
 {
     return 1.0f / a;
 }
 
 // Vector math extensions.
-inline float Djinn::Math::Dot(FXMVECTOR a, FXMVECTOR b)
+inline float Math::Dot(FXMVECTOR a, FXMVECTOR b)
 {
     // return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
     return XMVectorGetX(XMVector3Dot(a, b));
 }
 
 // Vector math abstractions.
-inline float Djinn::Math::Magnitude(FXMVECTOR vector)
+inline float Math::Magnitude(FXMVECTOR vector)
 {
     return 0;
 }
 
-XMVECTOR Djinn::Math::Proj(FXMVECTOR v, FXMVECTOR n)
+XMVECTOR Math::Proj(FXMVECTOR v, FXMVECTOR n)
 {
     return XMVector3Dot(v, n) / XMVector3LengthSq(n) * n;
     
@@ -34,7 +37,7 @@ XMVECTOR Djinn::Math::Proj(FXMVECTOR v, FXMVECTOR n)
 }
 
 // Matrix math abstractions.
-XMFLOAT4X4 Djinn::Math::Identity()
+XMFLOAT4X4 Math::Identity()
 {
     XMFLOAT4X4 I(
         1.0f, 0.0f, 0.0f, 0.0f,
@@ -46,15 +49,21 @@ XMFLOAT4X4 Djinn::Math::Identity()
 }
 
 // Presently for reference only. Use XMMatrixLookAtLH()
-XMFLOAT4X4 Djinn::Math::ViewTransform(
+XMMATRIX Math::ViewMatrix(
     FXMVECTOR eyePos, FXMVECTOR lookDir, FXMVECTOR up)
 {
-    // Get the camera's axes.
-    XMVECTOR w = lookDir - eyePos; // camera z-axis/forward.
-    w = w / XMVector3Length(w); // normalized.
-    XMVECTOR u = XMVector3Cross(up, w); // camera x-axis/right.
-    u = u / XMVector3Length(u); // normalized.
-    XMVECTOR v = XMVector3Cross(w, u); // camera y-axis/up normalized.
+    static XMVECTOR epsilon = XMVectorSet(0.001f, 0.001f, 0.001f, 0.001f);
+    XMVECTOR lookDirCpy = lookDir;
+    if (XMVector3NearEqual(eyePos, lookDir, epsilon))
+    {
+        lookDirCpy = XMVectorSetZ(lookDir, XMVectorGetZ(lookDir) + 1.f);
+    }
+    return XMMatrixLookAtLH(eyePos, lookDirCpy, up);
+    /*XMVECTOR w = lookDir - eyePos;
+    w = w / XMVector3Length(w);
+    XMVECTOR u = XMVector3Cross(up, w);
+    u = u / XMVector3Length(u);
+    XMVECTOR v = XMVector3Cross(w, u);
     XMVECTOR invEyePos = -1 * eyePos;
 
     XMFLOAT4X4 viewTransform(
@@ -63,17 +72,17 @@ XMFLOAT4X4 Djinn::Math::ViewTransform(
         XMVectorGetZ(u), XMVectorGetZ(v), XMVectorGetZ(w), 0.0f,
         Dot(invEyePos, u), Dot(invEyePos, v), Dot(invEyePos, w), 0.0f
     );
-    return viewTransform;
+    return viewTransform;*/
 }
 
-// Presently for reference only. Use XMMatrixPerspectiveFovLH() or ...RH()
-XMFLOAT4X4 Djinn::Math::Perspective(
+XMMATRIX Math::PerspectiveMatrix(
     const float near,
     const float far,
     const float fov,
     const float aspect)
 {
-    const float t = tan(fov / 2.0f);
+    return XMMatrixPerspectiveFovLH(fov, aspect, near, far);
+    /*const float t = tan(fov / 2.0f);
     const float a = far / (far - near);
     const float b = -far * near / (far - near);
     XMFLOAT4X4 persp(
@@ -83,5 +92,5 @@ XMFLOAT4X4 Djinn::Math::Perspective(
         0.0f, 0.0f, b, 0.0f
     );
 
-    return persp;
+    return persp;*/
 }

@@ -27,11 +27,11 @@ namespace Djinn
         static DirectX::XMFLOAT4X4 Identity();
 
         // Use XMMatrixLookAtLH()
-        DirectX::XMFLOAT4X4 ViewTransform(
+        static DirectX::XMMATRIX ViewMatrix(
             DirectX::FXMVECTOR eyePos, DirectX::FXMVECTOR lookDir, DirectX::FXMVECTOR up);
 
         // Use XMMatrixPerspectiveFovLH() or ...RH()
-        DirectX::XMFLOAT4X4 Perspective(
+        static DirectX::XMMATRIX PerspectiveMatrix(
             const float near,
             const float far,
             const float fov,
