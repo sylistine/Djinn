@@ -7,9 +7,9 @@ Mesh::Mesh()
 {
     // dummy tri
     Vertex verts[] = {
-        { 0.0f,  0.25f, 0.0f },
-        { 0.25f,  -0.25f, 0.0f },
-        { -0.25f, -0.25f, 0.0f },
+        { 0.0f,  1.0f, 0.0f },
+        { 1.0f,  -1.0f, 0.0f },
+        { -1.0f, -1.0f, 0.0f },
     };
     vertexCount = sizeof(verts) / sizeof(Vertex);
     vertices = new Vertex[vertexCount];
