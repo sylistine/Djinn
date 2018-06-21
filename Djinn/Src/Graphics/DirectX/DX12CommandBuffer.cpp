@@ -61,7 +61,7 @@ void DX12CommandBuffer::Draw()
     // Getting the clearcolor.
     // This is just for fun and won't live here much longer.
     static float hue = 0.f;
-    float speed = 24.f; // h increment per second.
+    float speed = 96.f; // h increment per second.
     float r, g, b;
     Color::Hsv2Rgb(hue, 0.25f, 0.75f, r, g, b);
     float clearColor[4] = { r, g, b, 1.0f };
