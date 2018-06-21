@@ -1,6 +1,6 @@
 #include "Camera.h"
 
-using namespace std;
+//using namespace std;
 using namespace Djinn;
 
 Camera::Camera(Scene *parentScene) : parentScene(parentScene)
@@ -21,15 +21,9 @@ Camera::~Camera()
 }
 
 
-vector<Mesh *> Camera::GetRenderableGeo()
+std::vector<Mesh *> Camera::GetStaticGeo()
 {
-    vector<Mesh *> renderableGeo;
-    for (auto mesh : parentScene->GetStaticGeo())
-    {
-        // TODO: filter results
-        renderableGeo.push_back(mesh);
-    }
-    return renderableGeo;
+    return parentScene->GetStaticGeo();
 }
 
 

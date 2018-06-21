@@ -1,7 +1,7 @@
-cbuffer ConstantData : register(b0)
-{
-    float4x4 wvp;
-};
+//cbuffer ConstantData : register(b0)
+//{
+//    float4x4 wvp;
+//};
 
 struct FSInput
 {

@@ -6,6 +6,7 @@ Graphics::Graphics(GfxRHI *gfxRHI)
     : gfxRHI(gfxRHI)
 {
     commandBuffer = gfxRHI->GetCommandBuffer();
+    commandBuffer->Initialize();
 }
 
 
@@ -35,17 +36,34 @@ void Graphics::Update()
 
 void Graphics::SetupGeo()
 {
-    for (auto& camera : scene->GetCameras())
+    // NOTE: Meshes are currently stored raw in the scene, and have no transformation data.
+    // So the only transformation that happens is when we move the camera.
+    std::vector<Mesh *> staticGeometry = scene->GetMainCamera()->GetStaticGeo();
+
+    // Assembling static geo into sequential memory.
+    // Something will probably have to delete these at some point...
+    UINT vertc = 0;
+    UINT indc = 0;
+    for (auto& geometry : staticGeometry)
     {
-        // Prepare swap chain and command buffers for each extra camera.
-        auto renderableGeo = camera->GetRenderableGeo();
+        vertc += geometry->VertexCount();
+        indc += geometry->IndexCount();
     }
+    Vertex *vertices = new Vertex[vertc];
+    UINT *indices = new UINT[indc];
+    int vertexOffset = 0;
+    int indexOffset = 0;
+    for (auto& geometry : staticGeometry)
+    {
+        memcpy(vertices + vertexOffset, geometry->Vertices(), geometry->VertexCount() * sizeof(Vertex));
+        vertexOffset += geometry->VertexCount();
+        memcpy(indices + indexOffset, geometry->Indices(), geometry->IndexCount() * sizeof(UINT));
+        indexOffset += geometry->IndexCount();
+    }
+
+    commandBuffer->SetStaticGeometry(vertices, vertc, indices, indc);
 }
 
 void Graphics::UpdateNonStaticGeo()
 {
-    for (auto& camera : scene->GetCameras())
-    {
-        // Update moving geo.
-    }
 }

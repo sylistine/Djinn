@@ -13,7 +13,8 @@ namespace Djinn {
         Camera(Scene *parentScene);
         ~Camera();
 
-        std::vector<Mesh *> GetRenderableGeo();
+        std::vector<Mesh *> GetStaticGeo();
+        std::vector<Mesh *> GetNonStaticGeo();
         Transform *GetTransform();
     private:
         Camera(const Camera& other);

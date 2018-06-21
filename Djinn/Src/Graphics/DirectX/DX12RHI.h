@@ -36,10 +36,7 @@ namespace Djinn {
         // ~tors
         DX12RHI(HWND hWnd, int width, int height);
         ~DX12RHI() override;
-    private:
-        DX12RHI(const DX12RHI& other);
 
-    public:
         MSAA_SAMPLE_LEVEL GetMsaaSampleLevel()override;
         bool IsInitialized()override;
         void SetMsaaSampleLevel(MSAA_SAMPLE_LEVEL newLevel)override;
@@ -47,8 +44,19 @@ namespace Djinn {
         ID3D12Resource * CurrentBackBuffer()const;
         D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
         D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView()const;
+        DXGI_SAMPLE_DESC GetSampleDescriptor()const;
+        DXGI_FORMAT BackBufferFormat()const;
+        DXGI_FORMAT DepthStencilFormat()const;
 
+        bool Initialize() override;
+        CommandBuffer *GetCommandBuffer() override;
+        void SubmitCommandList(ID3D12CommandList *commandList);
+        void ExecuteCommandLists();
+        void PresentAndFlip();
+        void FlushCommandQueue();
     private:
+        DX12RHI(const DX12RHI& other);
+
         HWND hWnd;
         int clientWidth;
         int clientHeight;
@@ -84,21 +92,13 @@ namespace Djinn {
 
         // TODO: This shouldn't live here... we need a controller to hold these...
         std::vector<ID3D12CommandList *> commandLists;
-    public:
-        bool Initialize() override;
-        CommandBuffer *GetCommandBuffer() override;
-        void SubmitCommandList(ID3D12CommandList *commandList);
-        void ExecuteCommandLists();
-        void PresentAndFlip();
-        void FlushCommandQueue();
-    private:
+
         void OnResize();
         void UpdateMSAASupport();
         bool CreateCommandObjects();
         void CreateSwapChain();
         void CreateRtvAndDsvDescriptorHeaps();
 
-        inline DXGI_SAMPLE_DESC GetSampleDescriptor()const;
 
         void LogAdapters();
         void LogAdapterOutputs(IDXGIAdapter* adapter);

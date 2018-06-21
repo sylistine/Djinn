@@ -99,6 +99,12 @@
     <ClInclude Include="Src\Vertex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Graphics\DirectX\DX12MeshData.h">
+      <Filter>Header Files\Graphics\DirectX</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Graphics\DirectX\D3DUtil.h">
+      <Filter>Header Files\Graphics\DirectX</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Windows\WindowsAppWrapper.cpp">
@@ -149,9 +155,19 @@
     <ClCompile Include="Src\Vertex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Graphics\DirectX\DX12MeshData.cpp">
+      <Filter>Source Files\Graphics\DirectX</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Graphics\DirectX\D3DUtil.cpp">
+      <Filter>Source Files\Graphics\DirectX</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Src\Graphics\Shaders\SimpleFS.hlsl" />
-    <None Include="Src\Graphics\Shaders\SimpleVS.hlsl" />
+    <FxCompile Include="Src\SimpleFS.hlsl">
+      <Filter>Source Files</Filter>
+    </FxCompile>
+    <FxCompile Include="Src\SimpleVS.hlsl">
+      <Filter>Source Files</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

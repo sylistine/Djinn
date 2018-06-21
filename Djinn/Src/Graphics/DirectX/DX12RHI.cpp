@@ -129,7 +129,7 @@ bool DX12RHI::Initialize()
 
 CommandBuffer *DX12RHI::GetCommandBuffer()
 {
-    return new DX12CommandBuffer(this, device.Get());
+    return new DX12CommandBuffer(this, device.Get(), screenViewport, scissorRect);
 }
 
 
@@ -141,9 +141,6 @@ void DX12RHI::SubmitCommandList(ID3D12CommandList *commandList)
 
 void DX12RHI::ExecuteCommandLists()
 {
-    //ID3D12CommandList *commandLists[] = { commandList.Get() };
-
-
     ID3D12CommandList **commandListArray = new ID3D12CommandList*[commandLists.size()];
     for (int i = 0; i < commandLists.size(); ++i)
     {
@@ -283,6 +280,8 @@ void DX12RHI::FlushCommandQueue()
         WaitForSingleObject(eventHandle, INFINITE);
         CloseHandle(eventHandle);
     }
+
+    commandLists.clear();
 }
 
 
@@ -305,7 +304,7 @@ void DX12RHI::UpdateMSAASupport()
 }
 
 
-inline DXGI_SAMPLE_DESC DX12RHI::GetSampleDescriptor()const
+DXGI_SAMPLE_DESC DX12RHI::GetSampleDescriptor()const
 {
     UINT count;
     UINT quality;
@@ -328,6 +327,18 @@ inline DXGI_SAMPLE_DESC DX12RHI::GetSampleDescriptor()const
     sampleDesc.Count = count;
     sampleDesc.Quality = quality;
     return sampleDesc;
+}
+
+
+DXGI_FORMAT DX12RHI::BackBufferFormat()const
+{
+    return backBufferFormat;
+}
+
+
+DXGI_FORMAT DX12RHI::DepthStencilFormat()const
+{
+    return depthStencilFormat;
 }
 
 
@@ -484,7 +495,7 @@ void DX12RHI::LogOutputDisplayModes(IDXGIOutput* output, const DXGI_FORMAT forma
         UINT den = modeList[i].RefreshRate.Denominator;
         std::wstring text =
             std::to_wstring(modeList[i].Width) + L"x" +
-            std::to_wstring(modeList[i].Height) + L"@" +
+            std::to_wstring(modeList[i].Height) + L" @ " +
             std::to_wstring(num) + L"/" + std::to_wstring(den) + L"hz\n";
 
         OutputDebugString(text.c_str());

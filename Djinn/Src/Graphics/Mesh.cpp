@@ -5,42 +5,35 @@ using namespace Djinn;
 
 Mesh::Mesh()
 {
-    // all mesh are cube
-    XMFLOAT4 vertices[] = {
-        XMFLOAT4(-1.0f, -1.0f, -1.0f, 1.0f),
-        XMFLOAT4(-1.0f, 1.0f, -1.0f, 1.0f),
-        XMFLOAT4(1.0f, -1.0f, -1.0f, 1.0f),
-        XMFLOAT4(1.0f, 1.0f, -1.0f, 1.0f),
-        XMFLOAT4(1.0f, -1.0f, 1.0f, 1.0f),
-        XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        XMFLOAT4(-1.0f, -1.0f, 1.0f, 1.0f),
-        XMFLOAT4(-1.0f, 1.0f, 1.0f, 1.0f)
+    // dummy tri
+    Vertex verts[] = {
+        { 0.0f,  0.25f, 0.0f },
+        { 0.25f,  -0.25f, 0.0f },
+        { -0.25f, -0.25f, 0.0f },
     };
-    verts = vertices;
-    vertc = 8;
-    int triangles[] = {
-        0, 1, 2, 3, 2, 1,
-        2, 3, 4, 5, 4, 3,
-        4, 5, 6, 7, 6, 5,
-        6, 7, 0, 1, 0, 7,
-        0, 2, 4, 4, 6, 0,
-        1, 3, 5, 5, 7, 1
+    vertexCount = sizeof(verts) / sizeof(Vertex);
+    vertices = new Vertex[vertexCount];
+    memcpy(vertices, verts, vertexCount * sizeof(Vertex));
+
+    unsigned int idxes[] = {
+        2, 1, 0
     };
-    tris = triangles;
-    tric = 36;
+    indexCount = sizeof(idxes) / sizeof(unsigned int);
+    indices = new unsigned int[indexCount];
+    memcpy(indices, idxes, indexCount * sizeof(unsigned int));
 }
 
 
 Mesh::Mesh(const Mesh& other) {
-    verts = other.verts;
-    vertc = other.vertc;
-    tris = other.tris;
-    tric = other.tric;
+    memcpy(vertices, other.Vertices(), other.VertexCount() * sizeof(Vertex));
+    vertexCount = other.VertexCount();
+    memcpy(indices, other.Indices(), other.IndexCount() * sizeof(unsigned int));
+    indexCount = other.IndexCount();
 }
 
 
 Mesh::~Mesh()
 {
-    delete[] verts;
-    delete[] tris;
+    delete[] vertices;
+    delete[] indices;
 }

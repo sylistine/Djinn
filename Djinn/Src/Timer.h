@@ -2,8 +2,6 @@
 
 #include <string>
 
-using namespace std;
-
 class Timer
 {
 public:
@@ -18,7 +16,7 @@ public:
     void Stop();
     void Tick();
     void UpdateFrameStats();
-    wstring FrameStatus() const;
+    std::wstring FrameStatus() const;
     float Fps() const;
     float Mspf() const;
 private:

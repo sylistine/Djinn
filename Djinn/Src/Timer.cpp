@@ -163,9 +163,9 @@ void Timer::UpdateFrameStats()
 }
 
 
-wstring Timer::FrameStatus()const
+std::wstring Timer::FrameStatus()const
 {
-    return to_wstring(mspf) + L"ms (" + to_wstring(fps) + L"fps)";
+    return std::to_wstring(mspf) + L"ms (" + std::to_wstring(fps) + L"fps)";
 }
 
 

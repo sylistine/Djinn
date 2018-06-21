@@ -24,9 +24,11 @@
     <ClInclude Include="Src\Camera.h" />
     <ClInclude Include="Src\Color.h" />
     <ClInclude Include="Src\Graphics\CommandBuffer.h" />
+    <ClInclude Include="Src\Graphics\DirectX\D3DUtil.h" />
     <ClInclude Include="Src\Graphics\DirectX\d3dx12.h" />
     <ClInclude Include="Src\Graphics\DirectX\DX12CommandBuffer.h" />
     <ClInclude Include="Src\Graphics\DirectX\DX12RHI.h" />
+    <ClInclude Include="Src\Graphics\DirectX\DX12MeshData.h" />
     <ClInclude Include="Src\Graphics\DirectX\DxException.h" />
     <ClInclude Include="Src\Graphics\GfxRHI.h" />
     <ClInclude Include="Src\Graphics\Graphics.h" />
@@ -45,8 +47,10 @@
     <ClCompile Include="Src\App.cpp" />
     <ClCompile Include="Src\Camera.cpp" />
     <ClCompile Include="Src\Color.cpp" />
+    <ClCompile Include="Src\Graphics\DirectX\D3DUtil.cpp" />
     <ClCompile Include="Src\Graphics\DirectX\DX12CommandBuffer.cpp" />
     <ClCompile Include="Src\Graphics\DirectX\DX12RHI.cpp" />
+    <ClCompile Include="Src\Graphics\DirectX\DX12MeshData.cpp" />
     <ClCompile Include="Src\Graphics\DirectX\DxException.cpp" />
     <ClCompile Include="Src\Graphics\Graphics.cpp" />
     <ClCompile Include="Src\Graphics\Mesh.cpp" />
@@ -60,18 +64,10 @@
     <ClCompile Include="Src\Windows\WindowsAppWrapper.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Src\Graphics\Shaders\SimpleFS.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    <None Include="Src\SimpleFS.hlsl">
       <FileType>Document</FileType>
     </None>
-    <None Include="Src\Graphics\Shaders\SimpleVS.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    <None Include="Src\SimpleVS.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>
@@ -134,6 +130,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -143,6 +140,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -154,6 +152,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -169,6 +168,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
